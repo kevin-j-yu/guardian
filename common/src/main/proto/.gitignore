@@ -1,0 +1,3 @@
+# proto directory needs to exist even before protos are synced for gradle protobuf plugin to operate
+*
+!.gitignore

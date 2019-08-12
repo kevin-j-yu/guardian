@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content">
+    <View
+            android:layout_height="1dip"
+            android:background="@color/black"
+            android:backgroundTint="@color/background_icon_gray"
+            android:layout_width="match_parent"
+            android:layout_gravity="top"
+            android:id="@+id/horizontal_rule"/>
+    <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/progress_bar"
+            android:indeterminateOnly="true"
+            android:layout_gravity="top"
+            android:indeterminateTint="?attr/rideos.primary_color"
+            android:layout_marginTop="-7dp"
+            android:layout_marginBottom="-7dp"
+            android:scaleY="0.75"/>
+</FrameLayout>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<resources>
+    <!-- This theme can be overridden to change the look of the app -->
+    <style name="RideOS.MainTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="rideos.primary_color">@color/rideos_blue</item>
+        <item name="rideos.primary_color_light">@color/rideos_blue</item>
+        <item name="rideos.primary_text_color">@color/black</item>
+        <item name="rideos.secondary_text_color">@color/secondary_text</item>
+        <item name="rideos.primary_background_color">@color/white</item>
+        <item name="rideos.primary_background_color_dimmed">@color/dimmed_white_background</item>
+        <item name="rideos.action_button_color">?attr/rideos.primary_color</item>
+        <item name="rideos.action_button_pressed_color">@color/rideos_dark_blue</item>
+        <item name="rideos.action_button_disabled_color">@color/button_disabled</item>
+        <item name="rideos.action_button_text_color">@color/white</item>
+        <item name="rideos.nav_icon_color">@color/dark_blue_gray</item>
+        <item name="rideos.nav_menu_text_color">?attr/rideos.primary_text_color</item>
+        <item name="rideos.nav_menu_background_color">?attr/rideos.primary_background_color</item>
+        <item name="rideos.nav_menu_highlight_text_color">@color/white</item>
+        <item name="rideos.route_color">@color/rideos_light_blue</item>
+        <item name="rideos.inactive_route_color">@color/inactive_route_black</item>
+        <item name="rideos.icon_color">@color/blue_gray</item>
+        <item name="rideos.divider_color">@color/transparent_black</item>
+        <item name="rideos.car_icon">@mipmap/car</item>
+        <item name="rideos.pickup_pin">@mipmap/green_pin</item>
+        <item name="rideos.drop_off_pin">@mipmap/red_pin</item>
+        <item name="rideos.waypoint_pin">@mipmap/blue_circle</item>
+        <item name="rideos.settings_background_color">@color/settings_background_light_gray</item>
+        <item name="rideos.settings_heading_color">@color/settings_header_blue</item>
+        <item name="rideos.settings_sub_heading_color">@color/settings_sub_header_gray</item>
+        <item name="rideos.error_font_color">@color/error_red</item>
+        <item name="android:navigationBarColor">@color/bottom_nav_bar_gray</item>
+    </style>
+
+    <style name="RideOS.LoginTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="rideos.splash_icon">@drawable/logo</item>
+        <item name="android:navigationBarColor">@color/bottom_nav_bar_gray</item>
+    </style>
+
+    <style name="DefaultTextViewStyle">
+        <item name="android:textColor">?attr/rideos.primary_text_color</item>
+    </style>
+    <style name="DefaultActionButtonStyle">
+        <item name="android:background">@drawable/action_button_background_color</item>
+        <item name="android:textColor">?attr/rideos.action_button_text_color</item>
+        <item name="android:letterSpacing">0.25</item>
+    </style>
+
+    <style name="DefaultNavButtonStyle">
+        <item name="android:background">@drawable/nav_button_background</item>
+        <item name="android:tint">?attr/rideos.nav_icon_color</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_width">36dp</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+
+    <style name="DefaultAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="buttonBarNegativeButtonStyle">@style/DefaultAlertDialogButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DefaultAlertDialogButtonStyle</item>
+    </style>
+
+    <style name="DefaultDetailTitleStyle">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">?attr/rideos.secondary_text_color</item>
+    </style>
+
+    <style name="DefaultAlertDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">?attr/rideos.action_button_color</item>
+    </style>
+
+    <style name="DefaultFloatingHintStyle" parent="@android:style/TextAppearance">
+        <item name="android:textColor">?attr/rideos.primary_color</item>
+    </style>
+
+    <style name="DefaultTextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">?attr/rideos.primary_color</item>
+        <item name="hintTextAppearance">@style/DefaultFloatingHintStyle</item>
+    </style>
+</resources>

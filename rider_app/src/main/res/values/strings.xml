@@ -1,0 +1,111 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<resources>
+    <string name="geocoder_hint_pickup">Enter Origin</string>
+    <string name="location_search_hint_drop_off">Destination</string>
+    <string name="search_icon_description">Search Icon</string>
+    <string name="request_pickup_button">Request Vehicle</string>
+    <string name="request_destination_text">San Francisco International Airport</string>
+    <string name="request_eta_text">18.5 mi · 28 min</string>
+    <string name="confirm_trip_text">Ready to ride?</string>
+    <string name="confirm_location_button">Confirm</string>
+    <string name="start_request_button">Start</string>
+    <string name="confirmed_trip_text">Confirmed!</string>
+    <string name="cancel_button_text">X</string>
+    <string name="initial_screen_filler_text">Where are you going?</string>
+    <string name="back_button_text">Back</string>
+    <string name="done_button_text">DONE</string>
+    <string name="requesting_trip">Requesting your trip…</string>
+    <string name="cancel_trip_text">Cancel Trip</string>
+    <string name="login_button">Login</string>
+    <string name="trip_stage_cancelling_trip">Cancelling trip</string>
+    <string name="trip_stage_matching_to_vehicle">Matching you to a vehicle…</string>
+    <string name="trip_stage_driving_to_pickup">Driving to pick you up</string>
+    <string name="trip_stage_waiting_for_pickup">Waiting to pick you up</string>
+    <string name="trip_stage_driving_to_destination">Driving to your destination</string>
+    <string name="trip_stage_completed">Trip completed</string>
+    <string name="trip_stage_cancelled">Trip cancelled</string>
+    <string name="confirm_pickup_title_text">Confirm your pickup spot</string>
+    <string name="confirm_drop_off_title_text">Confirm your drop-off spot</string>
+    <string name="confirm_pickup_button_text">Confirm Pickup</string>
+    <string name="confirm_drop_off_button_text">Confirm Drop-Off</string>
+
+    <string name="current_location_search_option">Current Location</string>
+    <string name="confirm_num_passengers_button">Confirm</string>
+    <string name="cancel_num_passengers_button">Cancel</string>
+    <string name="confirm_num_passengers_title">How many passengers?</string>
+    <string name="icon_description">icon</string>
+    <string name="location_row_short_name_filler">Short Name</string>
+    <string name="location_row_long_name_filler">Long Name Address</string>
+    <string name="confirm_seats_title_text">How many riders?</string>
+    <string name="confirm_seats_button_text">Confirm</string>
+    <string name="request_ride_button_text">Request Ride</string>
+    <string name="select_on_map_search_option">Select on Map</string>
+    <string name="set_pickup_on_map_title">Set your pickup spot</string>
+    <string name="set_pickup_on_map_button">Set Pickup</string>
+    <string name="set_drop_off_on_map_title">Set your drop-off spot</string>
+    <string name="set_drop_off_on_map_button">Set Drop-Off</string>
+    <string name="cancel_on_trip_button_text">Cancel Request</string>
+    <string name="waiting_for_assignment_title">Finding your ride…</string>
+    <string name="waiting_for_pickup_title">Your ride has arrived!</string>
+    <string name="waiting_for_pickup_detail">Walk to pickup location</string>
+    <string name="cancel_positive_button">Yes, cancel</string>
+    <string name="cancel_negative_button">No</string>
+    <string name="cancel_on_trip_dialog_title">Cancel Trip</string>
+    <string name="waiting_for_assignment_cancel_message">Are you sure you want to cancel this trip?</string>
+    <plurals name="on_trip_stops_before_rider">
+        <item quantity="one">%1$d stop before yours</item>
+        <item quantity="other">%1$d stops before yours</item>
+    </plurals>
+    <string name="on_trip_queueing_and_arrival_time">%1$s - %2$s</string>
+    <string name="on_trip_arriving_less_than_minute_text">Picking you up now</string>
+    <string name="on_trip_arrival_time_text">Picking you up in %1$d min</string>
+    <string name="on_trip_arriving_time_unknown">Picking you up soon</string>
+    <string name="on_trip_eta_text">You will arrive by %1$s</string>
+    <string name="driving_to_pickup_cancel_message">Are you sure? Your driver is already on the
+        way.
+    </string>
+    <string name="waiting_for_pickup_cancel_message">Are you sure? Your driver has arrived at the
+        pickup location.
+    </string>
+    <string name="arrival_start_screen_message">You\'ve arrived!</string>
+    <string name="cancelled_start_screen_message">Trip has been cancelled</string>
+    <string name="dismiss_start_screen_message">Dismiss</string>
+    <string name="cancelling_trip_title">Cancelling your trip</string>
+    <string name="updating_pickup_title">Updating your pickup location</string>
+    <string name="optimizing_route_text">Optimizing route...</string>
+    <string name="automatic_vehicle_display_name">Automatic</string>
+    <string name="vehicle_selection_title">Select your vehicle</string>
+    <string name="vehicle_selection_confirm_button">Confirm Vehicle</string>
+    <string name="arrival_title_text">You\'ve arrived at your destination</string>
+    <string name="arrival_done_button">Done</string>
+    <string name="external_trip_cancel_title">Trip Cancelled</string>
+    <string name="external_trip_cancel_explanation">Your request has been cancelled. This may be due to safety
+        precautions. Please request a new ride from a different location.
+    </string>
+    <string name="external_trip_cancel_confirm_button">Okay</string>
+    <string name="manually_pick_vehicle_label">Manually pick vehicle</string>
+    <string name="trip_settings_header_title">Trip Settings</string>
+    <string name="pickup_label">Pickup</string>
+    <string name="drop_off_label">Drop-off</string>
+    <string name="open_uri_error_unknown_app">Could not open the intended link: %1$s</string>
+    <string name="open_uri_error_confirmation_button">Okay</string>
+    <string name="request_failure_message">We were unable to request your trip at this time. Please try again.</string>
+    <string name="confirm_trip_error_loading_text">Arrival time unknown</string>
+    <string name="cancellation_reason_prefix">\n\nReason:\u0020</string>
+</resources>

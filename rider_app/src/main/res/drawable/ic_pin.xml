@@ -1,0 +1,35 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="25dp"
+    android:height="84dp"
+    android:viewportWidth="25"
+    android:viewportHeight="84">
+  <path
+      android:pathData="M12.5,42C14.433,42 16,41.1046 16,40C16,38.8954 14.433,38 12.5,38C10.567,38 9,38.8954 9,40C9,41.1046 10.567,42 12.5,42Z"
+      android:fillColor="#000000"
+      android:fillAlpha="0.3"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M14,24.9109C20.1963,24.1699 25,18.8959 25,12.5C25,5.5964 19.4036,0 12.5,0C5.5964,0 0,5.5964 0,12.5C0,18.8959 4.8037,24.1699 11,24.9109L11,37.4254C11,37.9031 12.5,40.2903 12.5,40.2903C12.5,40.2903 14,37.9031 14,37.4254V24.9109Z"
+      android:fillColor="#000000"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M8,12.5a4.5,4.5 0,1 0,9 0a4.5,4.5 0,1 0,-9 0z"
+      android:fillColor="#ffffff"/>
+</vector>

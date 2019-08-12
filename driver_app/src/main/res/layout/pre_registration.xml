@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/preregistration_frame"
+        android:layout_width="match_parent"
+        tools:ignore="MissingPrefix"
+        android:layout_height="150dp" android:layout_gravity="bottom">
+
+    <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom" android:elevation="10dp"
+            android:backgroundTint="?attr/rideos.primary_background_color">
+        <Button
+                android:text="@string/start_registration_button_text"
+                android:layout_width="250dp"
+                android:layout_height="55dp" android:id="@+id/start_registration_button"
+                android:layout_gravity="bottom|center_horizontal"
+                style="@style/DefaultActionButtonStyle" android:layout_marginBottom="10dp"/>
+        <TextView
+                android:text="@string/pre_registration_information_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_gravity="top|center_horizontal" android:layout_marginTop="15dp"
+                android:textColor="?attr/rideos.primary_text_color" android:textSize="16sp"/>
+    </androidx.cardview.widget.CardView>
+
+</FrameLayout>

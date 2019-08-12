@@ -1,0 +1,55 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<resources>
+    <string name="go_online_button_text">Go Online</string>
+    <string name="offline_card_text">Ready to drive?</string>
+    <string name="go_offline_button_text">Go Offline</string>
+    <string name="online_idle_title_text">Waiting for assignments…</string>
+    <string name="pickup_passenger_button_text">Confirm Pickup</string>
+    <string name="waiting_for_pickup_title">Pickup Passenger</string>
+    <string name="start_navigation_button_text">Start Navigation</string>
+    <string name="confirm_arrival_button_text">Confirm</string>
+    <string name="drive_pending_pickup_title_text">Drive to Pickup</string>
+    <string name="drive_pending_drop_off_title_text">Drive to Drop-Off</string>
+    <string name="confirming_arrival_pickup_title_text">Confirm Arrival At Pickup</string>
+    <string name="confirming_arrival_drop_off_title_text">Confirm Arrival At Drop-Off</string>
+    <string name="waiting_for_pickup_confirmation_button">Confirm Pickup</string>
+    <string name="nav_failure_alert_title">Failed to Navigate</string>
+    <string name="nav_failure_alert_message">We failed to find a route to the given location.</string>
+    <string name="nav_failure_alert_retry_button">Retry</string>
+    <string name="nav_failure_alert_exit_button">Exit</string>
+    <string name="driver_navigation_settings_title">Driver Navigation</string>
+    <string name="simulate_navigation_switch_label">Simulate Navigation</string>
+    <string name="pre_registration_information_text">Please register your account to start accepting rides.</string>
+    <string name="start_registration_button_text">Register Account</string>
+    <string name="registration_preferred_name_title">Preferred Name</string>
+    <string name="registration_phone_number_title">Phone number</string>
+    <string name="registration_license_plate_title">License Plate</string>
+    <string name="registration_rider_capacity_title">Rider Capacity</string>
+    <string name="account_registration_title">Account Registration</string>
+
+    <plurals name="waiting_for_passengers_title_text">
+        <item quantity="one">Pickup passenger</item>
+        <item quantity="other">Pickup passengers</item>
+    </plurals>
+
+    <plurals name="waiting_for_passengers_detail_text">
+        <item quantity="one">Expecting %1$d passenger</item>
+        <item quantity="other">Expecting %1$d passengers</item>
+    </plurals>
+</resources>

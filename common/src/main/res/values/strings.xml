@@ -1,0 +1,66 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<resources>
+    <string name="app_name">Common</string>
+
+    <!-- Should be filled in by top-level application -->
+    <string name="com_auth0_client_id"></string>
+    <string name="com_auth0_connections"></string>
+    <string name="com_auth0_domain">rideos.auth0.com</string>
+    <string name="com_auth0_audience">https://rideos.ai/</string>
+    <string name="com_auth0_scheme">rideos</string>
+    <string name="com_auth0_scope">email offline_access openid profile</string>
+
+    <string name="location_permission_explanation_title">Location Permissions Needed</string>
+    <string name="location_permission_explanation_details">We need location permissions in order to provide you the best
+        in-app experience. The app may respond incorrectly if this permission is disabled.
+    </string>
+    <string name="location_permission_confirmation">Ok</string>
+
+    <string name="distance_display_miles">(%1$.1f mi)</string>
+    <string name="distance_display_kilometers">(%1$.1f km)</string>
+
+    <string name="time_display_minutes">%1$d min</string>
+    <string name="unknown_route_display">Unknown travel time</string>
+    <string name="distance_time_display">%1$s %2$s</string>
+
+    <string name="home_menu_option_title">Home</string>
+    <string name="developer_options_menu_option_title">Developer Settings</string>
+    <string name="account_settings_menu_option_title">Edit Profile</string>
+    <string name="developer_options_view_title_text">Developer Settings</string>
+    <string name="back_button_content_description">Back button</string>
+    <string name="menu_button_content_description">Menu button</string>
+    <string name="default_fleet_id_option_display">Default Fleet</string>
+    <string name="development_env_option">Development</string>
+    <string name="staging_env_option">Staging</string>
+    <string name="production_env_option">Production</string>
+    <string name="account_settings_title">Edit Profile</string>
+    <string name="logout_button_text">Logout</string>
+    <string name="sign_out_button_text">Sign Out</string>
+    <string name="save_button_text">SAVE</string>
+    <string name="account_preferred_name_hint">Preferred Name</string>
+    <string name="account_email_hint">Email</string>
+    <string name="developer_option_environment_title">Environment</string>
+    <string name="developer_option_fleet_id_title">Fleet Id</string>
+    <string name="developer_option_dispatch_id_title">Dispatch Id</string>
+    <string name="developer_option_active_fleet_title">Active Fleet</string>
+    <string name="connectivity_banner_text">No internet connection</string>
+    <string name="error_dialog_title">Uh-oh</string>
+    <string name="error_dialog_confirmation">Okay</string>
+    <string name="version_name_display">Version %1$s</string>
+</resources>

@@ -1,0 +1,27 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M18.5018,11.2727C18.1673,8.24 15.76,5.8327 12.7273,5.4982V4H11.2727V5.4982C8.24,5.8327 5.8327,8.24 5.4982,11.2727H4V12.7273H5.4982C5.8327,15.76 8.24,18.1673 11.2727,18.5018V20H12.7273V18.5018C15.76,18.1673 18.1673,15.76 18.5018,12.7273H20V11.2727H18.5018ZM12,9.0909C10.3927,9.0909 9.0909,10.3927 9.0909,12C9.0909,13.6073 10.3927,14.9091 12,14.9091C13.6073,14.9091 14.9091,13.6073 14.9091,12C14.9091,10.3927 13.6073,9.0909 12,9.0909ZM6.9091,12C6.9091,14.8145 9.1854,17.0909 12,17.0909C14.8145,17.0909 17.0909,14.8145 17.0909,12C17.0909,9.1854 14.8145,6.9091 12,6.9091C9.1854,6.9091 6.9091,9.1854 6.9091,12Z"
+      android:fillColor="#7F92AF"
+      android:fillType="evenOdd"/>
+</vector>

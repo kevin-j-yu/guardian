@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/address_option_background">
+
+    <TextView
+            android:id="@+id/location_row_primary_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="18sp" android:layout_gravity="top" android:text="@string/location_row_short_name_filler"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="56dp"
+            android:layout_marginTop="13dp" app:layout_constraintTop_toTopOf="parent" android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="?attr/rideos.primary_text_color"
+            android:alpha="0.8"/>
+    <TextView
+            android:id="@+id/location_row_single_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="18sp" android:layout_gravity="top" android:text="@string/location_row_short_name_filler"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="56dp"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent" android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="?attr/rideos.primary_text_color"
+            android:alpha="0.8"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toBottomOf="parent"/>
+    <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" android:id="@+id/location_row_secondary_name"
+            android:text="@string/location_row_long_name_filler"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@+id/location_row_primary_name"
+            app:layout_constraintStart_toStartOf="@+id/location_row_primary_name"
+            app:layout_constraintEnd_toEndOf="@+id/location_row_primary_name" android:layout_marginEnd="8dp"
+            android:textSize="14sp"
+            android:textColor="?attr/rideos.primary_text_color"
+            android:alpha="0.6"/>
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/rideos.divider_color" android:layout_gravity="bottom"
+            android:paddingStart="10dp" android:paddingEnd="10dp"
+            tools:layout_editor_absoluteX="0dp" app:layout_constraintTop_toBottomOf="@+id/location_row_secondary_name"
+            android:layout_marginTop="9dp"/>
+    <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/option_icon"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/location_row_primary_name" android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent" android:contentDescription="@string/icon_description"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

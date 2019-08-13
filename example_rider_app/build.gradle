@@ -46,8 +46,7 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    // TODO depend on maven versions
-    implementation project(':common')
-    implementation project(':rider_app')
-    implementation project(':google')
+    implementation 'ai.rideos.sdk:sdk-android-common:1.0.0'
+    implementation 'ai.rideos.sdk:sdk-android-rider:1.0.0'
+    implementation 'ai.rideos.sdk:sdk-android-google:1.0.0'
 }

@@ -61,10 +61,8 @@ There are a few feature flags we expose for common customizations to the behavio
 | `rideos_fixed_locations`        | Rider          | true/false | Forces the rider app to use discrete, fixed stop locations instead of normal coordinates. |
 
 ## Architecture
-TODO
 
-## Extending the app
-TODO
+Please see the separate [architecture documentation](docs/architecture.md).
 
 ## Licensing
 

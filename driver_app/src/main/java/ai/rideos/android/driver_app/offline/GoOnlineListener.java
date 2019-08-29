@@ -16,5 +16,5 @@
 package ai.rideos.android.driver_app.offline;
 
 public interface GoOnlineListener {
-    void goOnline();
+    void didGoOnline();
 }

@@ -15,6 +15,7 @@
  */
 package ai.rideos.android.common.app.dependency;
 
+import ai.rideos.android.common.interactors.DeviceRegistryInteractor;
 import ai.rideos.android.common.interactors.FleetInteractor;
 import ai.rideos.android.common.interactors.RideOsRouteInteractor;
 import android.content.Context;
@@ -23,4 +24,6 @@ public interface CommonDependencyFactory {
     FleetInteractor getFleetInteractor(final Context context);
 
     RideOsRouteInteractor getRouteInteractor(final Context context);
+
+    DeviceRegistryInteractor getDeviceRegistryInteractor(final Context context);
 }

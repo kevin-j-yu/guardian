@@ -15,31 +15,53 @@
  */
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
+import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.interactors.GeocodeInteractor;
-import ai.rideos.android.common.model.NamedTaskLocation;
 import ai.rideos.android.common.model.LatLng;
+import ai.rideos.android.common.model.LocationAndHeading;
+import ai.rideos.android.common.model.NamedTaskLocation;
+import ai.rideos.android.common.model.map.CameraUpdate;
+import ai.rideos.android.common.model.map.DrawableMarker;
+import ai.rideos.android.common.model.map.DrawableMarker.Anchor;
 import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
+import ai.rideos.android.common.utils.Markers;
+import ai.rideos.android.common.utils.Paths;
+import ai.rideos.android.common.view.resources.ResourceProvider;
 import io.reactivex.Observable;
 import java.io.IOException;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class DefaultConfirmingArrivalViewModelTest {
-    private final LatLng DESTINATION = new LatLng(0, 1);
+    private static final LocationAndHeading CURRENT_LOCATION = new LocationAndHeading(new LatLng(0, 0), 1);
+    private static final LatLng DESTINATION = new LatLng(1, 1);
+    private static final int DESTINATION_PIN = 1;
+    private static final int VEHICLE_PIN = 2;
 
     private DefaultConfirmingArrivalViewModel viewModelUnderTest;
     private GeocodeInteractor geocodeInteractor;
+    private ResourceProvider resourceProvider;
 
     @Before
     public void setUp() {
         geocodeInteractor = Mockito.mock(GeocodeInteractor.class);
+        final DeviceLocator deviceLocator = Mockito.mock(DeviceLocator.class);
+        Mockito.when(deviceLocator.observeCurrentLocation(Mockito.anyInt()))
+            .thenReturn(Observable.just(CURRENT_LOCATION));
+        resourceProvider = Mockito.mock(ResourceProvider.class);
+        Mockito.when(resourceProvider.getDrawableId(Mockito.anyInt()))
+            .thenReturn(VEHICLE_PIN);
         viewModelUnderTest = new DefaultConfirmingArrivalViewModel(
             geocodeInteractor,
             DESTINATION,
+            DESTINATION_PIN,
+            deviceLocator,
+            resourceProvider,
             new TrampolineSchedulerProvider()
         );
     }
@@ -66,10 +88,24 @@ public class DefaultConfirmingArrivalViewModelTest {
     }
 
     @Test
-    public void testMapStateProviderFunctionsClearMap() {
-        viewModelUnderTest.getCameraUpdates().test().assertValueCount(0).assertComplete();
-        viewModelUnderTest.getMarkers().test().assertValueAt(0, Map::isEmpty);
-        viewModelUnderTest.getPaths().test().assertValueAt(0, List::isEmpty);
+    public void testCameraUpdatesZoomInOnCurrentLocationAndDestination() {
+        viewModelUnderTest.getCameraUpdates().test()
+            .assertValueAt(0, CameraUpdate.fitToBounds(
+                Paths.getBoundsForPath(Arrays.asList(CURRENT_LOCATION.getLatLng(), DESTINATION))
+            ));
     }
 
+    @Test
+    public void testGetMarkersReturnsDestinationAndVehicle() {
+        final Map<String, DrawableMarker> expectedMarkers = new HashMap<>();
+        expectedMarkers.put("destination", new DrawableMarker(DESTINATION, 0, DESTINATION_PIN, Anchor.BOTTOM));
+        expectedMarkers.put(
+            Markers.VEHICLE_KEY,
+            Markers.getVehicleMarker(CURRENT_LOCATION.getLatLng(), CURRENT_LOCATION.getHeading(), resourceProvider)
+        );
+        viewModelUnderTest.getMarkers().test()
+            .assertValueAt(0, map -> map.get("destination").getPosition().equals(DESTINATION)
+                && map.get(Markers.VEHICLE_KEY).getPosition().equals(CURRENT_LOCATION.getLatLng())
+            );
+    }
 }

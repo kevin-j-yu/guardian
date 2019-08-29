@@ -103,7 +103,6 @@ public class DefaultRiderTripStateInteractorTest {
         RideHailRiderServiceGrpc.RideHailRiderServiceImplBase.class
     );
     private DefaultRiderTripStateInteractor interactorUnderTest;
-    private RouteInteractor routeInteractor;
 
     @Before
     public void setUp() throws IOException {
@@ -120,8 +119,6 @@ public class DefaultRiderTripStateInteractorTest {
         final User user = Mockito.mock(User.class);
         Mockito.when(user.fetchUserToken()).thenReturn(Single.just(API_TOKEN));
 
-        routeInteractor = Mockito.mock(RouteInteractor.class);
-
         final PolylineDecoder polylineDecoder = Mockito.mock(PolylineDecoder.class);
         Mockito.when(polylineDecoder.decode(ROUTE_TO_PICKUP.getPolyline()))
             .thenReturn(Collections.singletonList(ORIGIN));
@@ -131,7 +128,6 @@ public class DefaultRiderTripStateInteractorTest {
         interactorUnderTest = new DefaultRiderTripStateInteractor(
             () -> channel,
             user,
-            routeInteractor,
             polylineDecoder,
             new TrampolineSchedulerProvider()
         );
@@ -167,7 +163,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @Test
@@ -228,7 +223,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @Test
@@ -280,7 +274,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @Test
@@ -331,7 +324,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @Test
@@ -354,7 +346,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @Test
@@ -380,104 +371,6 @@ public class DefaultRiderTripStateInteractorTest {
         mockStateResponse(responseToReturn);
         interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
             .assertValueAt(0, expectedModel);
-        Mockito.verifyZeroInteractions(routeInteractor);
-    }
-
-    @Test
-    public void testCanFillInRouteIfPartiallyMissing() {
-        final LatLng firstWaypoint = new LatLng(11, 12);
-        final LatLng secondWaypoint = new LatLng(13, 14);
-        final GetTripStateResponseRC responseToReturn = GetTripStateResponseRC.newBuilder().setState(
-            TripState.newBuilder().setDrivingToPickup(DrivingToPickup.newBuilder()
-                .setAssignedVehicle(AssignedVehicle.newBuilder()
-                    .setId(VEHICLE_ID)
-                    .setHeading(FloatValue.newBuilder().setValue(15.0f))
-                    .setPosition(Locations.toRideOsPosition(ORIGIN))
-                    .setInfo(VEHICLE_INFO)
-                    .setPlanThroughTripEnd(Plan.newBuilder()
-                        .addStep(Step.newBuilder()
-                            .setId("step-waypoint-0")
-                            .setTripId("task-2")
-                            .setDriveToLocation(DriveToLocation.getDefaultInstance())
-                            .setPosition(Locations.toRideOsPosition(firstWaypoint))
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-waypoint-1")
-                            .setTripId("task-2")
-                            .setDropoffRider(DropoffRider.getDefaultInstance())
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-waypoint-2")
-                            .setTripId("task-2")
-                            .setDriveToLocation(DriveToLocation.getDefaultInstance())
-                            .setPosition(Locations.toRideOsPosition(secondWaypoint))
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-waypoint-3")
-                            .setTripId("task-2")
-                            .setDropoffRider(DropoffRider.getDefaultInstance())
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-0")
-                            .setTripId(TASK_ID)
-                            .setDriveToLocation(DriveToLocation.newBuilder().setRoute(ROUTE_TO_PICKUP))
-                            .setPosition(Locations.toRideOsPosition(ORIGIN))
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-1")
-                            .setTripId(TASK_ID)
-                            .setPickupRider(PickupRider.getDefaultInstance())
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-2")
-                            .setTripId(TASK_ID)
-                            .setDriveToLocation(DriveToLocation.newBuilder().setRoute(ROUTE_TO_DROP_OFF))
-                        )
-                        .addStep(Step.newBuilder()
-                            .setId("step-3")
-                            .setTripId(TASK_ID)
-                            .setDropoffRider(DropoffRider.getDefaultInstance())
-                        )
-                    )
-                )
-            )
-        )
-            .build();
-
-        Mockito.when(routeInteractor.getRouteForWaypoints(Mockito.any()))
-            .thenReturn(Observable.just(Arrays.asList(
-                new RouteInfoModel(Arrays.asList(ORIGIN, firstWaypoint), 500, 10),
-                new RouteInfoModel(Arrays.asList(firstWaypoint, secondWaypoint), 600, 11),
-                new RouteInfoModel(Arrays.asList(secondWaypoint, ORIGIN), 700, 12)
-            )));
-
-        final RouteInfoModel aggregatedRoute = new RouteInfoModel(
-            Arrays.asList(ORIGIN, firstWaypoint, firstWaypoint, secondWaypoint, secondWaypoint, ORIGIN),
-            500 + 600 + 700,
-            10 + 11 + 12
-        );
-
-        final TripStateModel expectedModel = new TripStateModel(
-            Stage.DRIVING_TO_PICKUP,
-            aggregatedRoute,
-            new ai.rideos.android.model.VehicleInfo(
-                VEHICLE_INFO.getLicensePlate(),
-                new ai.rideos.android.model.VehicleInfo.ContactInfo(
-                    VEHICLE_INFO.getDriverInfo().getContactInfo().getContactUrl()
-                )
-            ),
-            new LocationAndHeading(ORIGIN, 15.0f),
-            ORIGIN,
-            DESTINATION,
-            Arrays.asList(firstWaypoint, secondWaypoint),
-            null
-        );
-
-        mockStateResponse(responseToReturn);
-        interactorUnderTest.getTripState(TASK_ID, FLEET_ID).test()
-            .assertValueAt(0, expectedModel);
-        Mockito.verify(routeInteractor).getRouteForWaypoints(Arrays.asList(ORIGIN, firstWaypoint, secondWaypoint, ORIGIN));
-        Mockito.verifyNoMoreInteractions(routeInteractor);
     }
 
     @SuppressWarnings("unchecked")
@@ -528,7 +421,6 @@ public class DefaultRiderTripStateInteractorTest {
             .setSearchParameters(StopSearchParameters.newBuilder().setStopId("pickup-stop"))
             .build();
         Mockito.verify(mockBase).findPredefinedStop(Mockito.eq(expectedStopRequest), Mockito.any());
-        Mockito.verifyZeroInteractions(routeInteractor);
     }
 
     @SuppressWarnings("unchecked")

@@ -20,10 +20,8 @@ import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerP
 import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.MainViewState;
 import ai.rideos.android.model.VehicleStatus;
-import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
-import java.io.IOException;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -31,7 +29,6 @@ public class DefaultMainViewModelTest {
     private static final String VEHICLE_ID = "vehicle-1";
 
     private DefaultMainViewModel viewModelUnderTest;
-    private DriverVehicleInteractor vehicleInteractor;
 
     @Test
     public void testViewModelEmitsInitialStateBasedOnVehicleStatus() {
@@ -44,43 +41,23 @@ public class DefaultMainViewModelTest {
     @Test
     public void testStateTransitionsFromOfflineToOnline() {
         setUpWithInitialState(VehicleStatus.NOT_READY);
-        Mockito.when(vehicleInteractor.markVehicleReady(VEHICLE_ID))
-            .thenReturn(Completable.complete());
 
         final TestObserver<MainViewState> stateObserver = viewModelUnderTest.getMainViewState().test();
         stateObserver.assertValueAt(0, MainViewState.OFFLINE);
 
-        viewModelUnderTest.goOnline();
+        viewModelUnderTest.didGoOnline();
         stateObserver.assertValueAt(1, MainViewState.ONLINE);
-        Mockito.verify(vehicleInteractor).markVehicleReady(VEHICLE_ID);
     }
 
     @Test
     public void testStateTransitionsFromOnlineToOffline() {
         setUpWithInitialState(VehicleStatus.READY);
-        Mockito.when(vehicleInteractor.markVehicleNotReady(VEHICLE_ID))
-            .thenReturn(Completable.complete());
 
         final TestObserver<MainViewState> stateObserver = viewModelUnderTest.getMainViewState().test();
         stateObserver.assertValueAt(0, MainViewState.ONLINE);
 
-        viewModelUnderTest.goOffline();
+        viewModelUnderTest.didGoOffline();
         stateObserver.assertValueAt(1, MainViewState.OFFLINE);
-        Mockito.verify(vehicleInteractor).markVehicleNotReady(VEHICLE_ID);
-    }
-
-    @Test
-    public void testFailedStateTransitionReEmitsCurrentState() {
-        setUpWithInitialState(VehicleStatus.NOT_READY);
-        final TestObserver<MainViewState> stateObserver = viewModelUnderTest.getMainViewState().test();
-        Mockito.when(vehicleInteractor.markVehicleReady(VEHICLE_ID))
-            .thenReturn(Completable.error(new IOException()));
-
-        viewModelUnderTest.goOnline();
-        stateObserver
-            .assertValueCount(2)
-            .assertValueAt(0, MainViewState.OFFLINE)
-            .assertValueAt(1, MainViewState.OFFLINE);
     }
 
     @Test
@@ -95,7 +72,7 @@ public class DefaultMainViewModelTest {
     }
 
     private void setUpWithInitialState(final VehicleStatus vehicleStatus) {
-        vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
+        final DriverVehicleInteractor vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
         final User user = Mockito.mock(User.class);
         Mockito.when(user.getId()).thenReturn(VEHICLE_ID);
         Mockito.when(vehicleInteractor.getVehicleStatus(VEHICLE_ID))

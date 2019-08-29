@@ -19,14 +19,20 @@ import java.io.Serializable;
 
 public class TripResourceInfo implements Serializable {
     private final int numPassengers;
+    private final String nameOfTripRequester;
 
-    // TODO passenger name, number
-    public TripResourceInfo(final int numPassengers) {
+    // TODO passenger number
+    public TripResourceInfo(final int numPassengers, final String nameOfTripRequester) {
         this.numPassengers = numPassengers;
+        this.nameOfTripRequester = nameOfTripRequester;
     }
 
     public int getNumPassengers() {
         return numPassengers;
+    }
+
+    public String getNameOfTripRequester() {
+        return nameOfTripRequester;
     }
 
     @Override
@@ -37,6 +43,7 @@ public class TripResourceInfo implements Serializable {
         if (!(other instanceof TripResourceInfo)) {
             return false;
         }
-        return numPassengers == ((TripResourceInfo) other).numPassengers;
+        final TripResourceInfo that = (TripResourceInfo) other;
+        return numPassengers == that.numPassengers && nameOfTripRequester.equals(that.nameOfTripRequester);
     }
 }

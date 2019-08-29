@@ -15,7 +15,6 @@
  */
 package ai.rideos.android.driver_app;
 
-import static ai.rideos.android.common.viewmodel.state_machine.StateTransitions.asyncTransitionIf;
 import static ai.rideos.android.common.viewmodel.state_machine.StateTransitions.transitionIf;
 
 import ai.rideos.android.common.authentication.User;
@@ -86,18 +85,18 @@ public class DefaultMainViewModel implements MainViewModel {
     }
 
     @Override
-    public void goOnline() {
-        stateMachine.transitionAsync(asyncTransitionIf(
+    public void didGoOnline() {
+        stateMachine.transition(transitionIf(
             Predicate.isEqual(MainViewState.OFFLINE),
-            state -> vehicleInteractor.markVehicleReady(user.getId()).toSingleDefault(MainViewState.ONLINE)
+            state -> MainViewState.ONLINE
         ));
     }
 
     @Override
-    public void goOffline() {
-        stateMachine.transitionAsync(asyncTransitionIf(
+    public void didGoOffline() {
+        stateMachine.transition(transitionIf(
             Predicate.isEqual(MainViewState.ONLINE),
-            state -> vehicleInteractor.markVehicleNotReady(user.getId()).toSingleDefault(MainViewState.OFFLINE)
+            state -> MainViewState.OFFLINE
         ));
     }
 

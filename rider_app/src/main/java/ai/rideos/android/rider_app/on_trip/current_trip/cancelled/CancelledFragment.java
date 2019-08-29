@@ -15,6 +15,7 @@
  */
 package ai.rideos.android.rider_app.on_trip.current_trip.cancelled;
 
+import ai.rideos.android.common.app.map.MapRelay;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
@@ -22,6 +23,7 @@ import ai.rideos.android.model.TripStateModel.CancellationReason;
 import ai.rideos.android.model.TripStateModel.CancellationReason.Source;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.on_trip.current_trip.cancelled.CancelledFragment.CancelledArgs;
+import ai.rideos.android.viewmodel.ClearMapDetailsMapStateProvider;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +33,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.snackbar.BaseTransientBottomBar.BaseCallback;
 import com.google.android.material.snackbar.Snackbar;
+import io.reactivex.disposables.CompositeDisposable;
 import java.io.Serializable;
 
 public class CancelledFragment extends FragmentViewController<CancelledArgs, CancelledListener> {
@@ -42,6 +45,8 @@ public class CancelledFragment extends FragmentViewController<CancelledArgs, Can
             this.cancellationReason = cancellationReason;
         }
     }
+
+    private CompositeDisposable compositeDisposable;
 
     @Override
     public ControllerTypes<CancelledArgs, CancelledListener> getTypes() {
@@ -59,6 +64,19 @@ public class CancelledFragment extends FragmentViewController<CancelledArgs, Can
             displayCancellationReasonDialog(cancellationReason);
         }
         return BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.empty_fragment);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(MapRelay.get().connectToProvider(new ClearMapDetailsMapStateProvider()));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        compositeDisposable.dispose();
     }
 
     private void displayCancellationSnackbar(final ViewGroup viewGroup) {

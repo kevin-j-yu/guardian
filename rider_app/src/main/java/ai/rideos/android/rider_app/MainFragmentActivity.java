@@ -16,11 +16,14 @@
 package ai.rideos.android.rider_app;
 
 import ai.rideos.android.common.app.AppUpdateManagerLifecycleListener;
+import ai.rideos.android.common.app.CommonMetadataKeys;
+import ai.rideos.android.common.app.MetadataReader;
 import ai.rideos.android.common.app.menu_navigator.LoggedOutListener;
 import ai.rideos.android.common.app.menu_navigator.MenuOptionFragmentRegistry;
 import ai.rideos.android.common.app.menu_navigator.OpenMenuListener;
 import ai.rideos.android.common.app.menu_navigator.menu.MenuNavigator;
 import ai.rideos.android.common.app.menu_navigator.menu.MenuPresenter;
+import ai.rideos.android.common.app.push_notifications.PushNotificationManager;
 import ai.rideos.android.common.connectivity.ConnectivityMonitor;
 import ai.rideos.android.common.device.FusedLocationDeviceLocator;
 import ai.rideos.android.common.fleets.DefaultFleetResolver;
@@ -36,6 +39,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 
 public class MainFragmentActivity
     extends FragmentActivity
@@ -90,6 +94,17 @@ public class MainFragmentActivity
     public void onStart() {
         super.onStart();
         connectivityMonitor.start();
+
+        final boolean enablePushNotifications = new MetadataReader(this)
+            .getBooleanMetadata(CommonMetadataKeys.ENABLE_PUSH_NOTIFICATIONS)
+            .getOrDefault(true);
+
+        if (enablePushNotifications) {
+            compositeDisposable.add(PushNotificationManager.forRider(this).requestTokenAndSync().subscribe(
+                () -> Timber.i("Initialized device token"),
+                e -> Timber.e(e, "Failed to request token")
+            ));
+        }
     }
 
     @Override

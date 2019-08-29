@@ -17,7 +17,9 @@ package ai.rideos.android.common.app.dependency;
 
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.grpc.ChannelProvider;
+import ai.rideos.android.common.interactors.DefaultDeviceRegistryInteractor;
 import ai.rideos.android.common.interactors.DefaultFleetInteractor;
+import ai.rideos.android.common.interactors.DeviceRegistryInteractor;
 import ai.rideos.android.common.interactors.FleetInteractor;
 import ai.rideos.android.common.interactors.RideOsRouteInteractor;
 import android.content.Context;
@@ -29,5 +31,13 @@ public class DefaultCommonDependencyFactory implements CommonDependencyFactory {
 
     public RideOsRouteInteractor getRouteInteractor(final Context context) {
         return new RideOsRouteInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
+    }
+
+    @Override
+    public DeviceRegistryInteractor getDeviceRegistryInteractor(final Context context) {
+        return new DefaultDeviceRegistryInteractor(
+            ChannelProvider.getChannelSupplierForContext(context),
+            User.get(context)
+        );
     }
 }

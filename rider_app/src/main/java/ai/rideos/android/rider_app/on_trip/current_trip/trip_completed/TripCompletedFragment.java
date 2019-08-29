@@ -15,19 +15,22 @@
  */
 package ai.rideos.android.rider_app.on_trip.current_trip.trip_completed;
 
+import ai.rideos.android.common.app.map.MapRelay;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.model.NamedTaskLocation;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.on_trip.current_trip.trip_completed.TripCompletedFragment.TripCompletedArgs;
+import ai.rideos.android.viewmodel.ClearMapDetailsMapStateProvider;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import io.reactivex.disposables.CompositeDisposable;
 import java.io.Serializable;
 
 public class TripCompletedFragment extends FragmentViewController<TripCompletedArgs, TripCompletedListener> {
@@ -38,6 +41,8 @@ public class TripCompletedFragment extends FragmentViewController<TripCompletedA
             this.dropOffLocation = dropOffLocation;
         }
     }
+
+    private CompositeDisposable compositeDisposable;
 
     @Override
     public ControllerTypes<TripCompletedArgs, TripCompletedListener> getTypes() {
@@ -60,5 +65,14 @@ public class TripCompletedFragment extends FragmentViewController<TripCompletedA
         final Button doneButton = getView().findViewById(R.id.done_button);
         final TripCompletedListener listener = getListener();
         doneButton.setOnClickListener(click -> listener.tripFinished());
+
+        compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(MapRelay.get().connectToProvider(new ClearMapDetailsMapStateProvider()));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        compositeDisposable.dispose();
     }
 }

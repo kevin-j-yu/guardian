@@ -18,6 +18,7 @@ package ai.rideos.android.driver_app;
 import ai.rideos.android.common.app.AppUpdateManagerLifecycleListener;
 import ai.rideos.android.common.app.CommonMetadataKeys;
 import ai.rideos.android.common.app.MetadataReader;
+import ai.rideos.android.common.app.push_notifications.PushNotificationManager;
 import ai.rideos.android.common.app.menu_navigator.LoggedOutListener;
 import ai.rideos.android.common.app.menu_navigator.MenuOptionFragmentRegistry;
 import ai.rideos.android.common.app.menu_navigator.OpenMenuListener;
@@ -40,6 +41,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.mapbox.mapboxsdk.Mapbox;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import timber.log.Timber;
 
 public class MainFragmentActivity
     extends FragmentActivity
@@ -49,19 +51,20 @@ public class MainFragmentActivity
     private MenuPresenter menuController;
     private ConnectivityMonitor connectivityMonitor;
     private AppUpdateManagerLifecycleListener appUpdateManager;
+    private MetadataReader metadataReader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        metadataReader = new MetadataReader(this);
 
         // Keep the screen always on when the driver app is open. This way the device doesn't sleep while in the middle
         // of a route.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // Set up mapbox token
-        final String apiToken = new MetadataReader(this)
-            .getStringMetadata(CommonMetadataKeys.MAPBOX_TOKEN_KEY)
-            .getOrThrow();
+        final String apiToken = metadataReader.getStringMetadata(CommonMetadataKeys.MAPBOX_TOKEN_KEY).getOrThrow();
         Mapbox.getInstance(this, apiToken);
 
         setContentView(R.layout.drawer_layout);
@@ -98,6 +101,17 @@ public class MainFragmentActivity
     public void onStart() {
         super.onStart();
         connectivityMonitor.start();
+
+        final boolean enablePushNotifications = metadataReader
+            .getBooleanMetadata(CommonMetadataKeys.ENABLE_PUSH_NOTIFICATIONS)
+            .getOrDefault(true);
+
+        if (enablePushNotifications) {
+            compositeDisposable.add(PushNotificationManager.forDriver(this).requestTokenAndSync().subscribe(
+                () -> Timber.i("Initialized device token"),
+                e -> Timber.e(e, "Failed to request token")
+            ));
+        }
     }
 
     @Override

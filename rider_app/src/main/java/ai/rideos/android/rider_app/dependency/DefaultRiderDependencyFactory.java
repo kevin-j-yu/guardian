@@ -51,7 +51,7 @@ public class DefaultRiderDependencyFactory extends DefaultCommonDependencyFactor
 
     @Override
     public RiderTripStateInteractor getTripStateInteractor(final Context context) {
-        return new DefaultRiderTripStateInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context), getRouteInteractor(context));
+        return new DefaultRiderTripStateInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
     }
 
     @Override

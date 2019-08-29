@@ -18,10 +18,12 @@ package ai.rideos.android.driver_app.online.driving.drive_pending;
 import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.LatLng;
+import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.RouteInfoModel;
 import ai.rideos.android.common.model.map.CameraUpdate;
 import ai.rideos.android.common.model.map.CenterPin;
 import ai.rideos.android.common.model.map.DrawableMarker;
+import ai.rideos.android.common.model.map.DrawableMarker.Anchor;
 import ai.rideos.android.common.model.map.DrawablePath;
 import ai.rideos.android.common.model.map.LatLngBounds;
 import ai.rideos.android.common.model.map.MapSettings;
@@ -33,10 +35,13 @@ import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.view.strings.RouteFormatter;
 import ai.rideos.android.driver_app.R;
+import androidx.core.util.Pair;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.SingleSubject;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import timber.log.Timber;
@@ -47,22 +52,26 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final SingleSubject<Result<RouteInfoModel>> routeInfoResult = SingleSubject.create();
+    private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
 
     private final RouteInteractor routeInteractor;
     private final SchedulerProvider schedulerProvider;
     private final ResourceProvider resourceProvider;
     private final LatLng destination;
+    private final int drawableDestinationPin;
     private final RouteFormatter routeFormatter;
 
     public DefaultDrivePendingViewModel(final DeviceLocator deviceLocator,
                                         final RouteInteractor routeInteractor,
                                         final ResourceProvider resourceProvider,
-                                        final LatLng destination) {
+                                        final LatLng destination,
+                                        final int drawableDestinationPin) {
         this(
             deviceLocator,
             routeInteractor,
             resourceProvider,
             destination,
+            drawableDestinationPin,
             new DefaultSchedulerProvider(),
             new RouteFormatter(resourceProvider)
         );
@@ -72,16 +81,18 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
                                         final RouteInteractor routeInteractor,
                                         final ResourceProvider resourceProvider,
                                         final LatLng destination,
+                                        final int drawableDestinationPin,
                                         final SchedulerProvider schedulerProvider,
                                         final RouteFormatter routeFormatter) {
         this.routeInteractor = routeInteractor;
         this.schedulerProvider = schedulerProvider;
         this.destination = destination;
         this.resourceProvider = resourceProvider;
+        this.drawableDestinationPin = drawableDestinationPin;
         this.routeFormatter = routeFormatter;
         compositeDisposable.addAll(
-            fetchRouteInfo(deviceLocator)
-                .subscribe(routeInfoResult::onSuccess)
+            deviceLocator.getLastKnownLocation().subscribe(currentLocation::onNext),
+            fetchRouteInfo().subscribe(routeInfoResult::onSuccess)
         );
     }
 
@@ -100,7 +111,7 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
 
     @Override
     public Observable<MapSettings> getMapSettings() {
-        return Observable.just(new MapSettings(true, CenterPin.hidden()));
+        return Observable.just(new MapSettings(false, CenterPin.hidden()));
     }
 
     @Override
@@ -116,10 +127,32 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
 
     @Override
     public Observable<Map<String, DrawableMarker>> getMarkers() {
-        return routeInfoResult.observeOn(schedulerProvider.computation())
-            .toObservable()
-            .filter(Result::isSuccess)
-            .map(routeResponse -> Markers.getMarkersForRoute(routeResponse.get(), resourceProvider));
+        return Observable.combineLatest(
+            routeInfoResult.toObservable().filter(Result::isSuccess),
+            currentLocation,
+            Pair::create
+        )
+            .observeOn(schedulerProvider.computation())
+            .map(routeAndLocation -> {
+                final List<LatLng> path = routeAndLocation.first.get().getRoute();
+                final LocationAndHeading vehicleLocation = routeAndLocation.second;
+                final Map<String, DrawableMarker> markers = new HashMap<>();
+                if (path.size() > 0) {
+                    markers.put(
+                        "destination",
+                        new DrawableMarker(destination, 0, drawableDestinationPin, Anchor.BOTTOM)
+                    );
+                    markers.put(
+                        Markers.VEHICLE_KEY,
+                        Markers.getVehicleMarker(
+                            vehicleLocation.getLatLng(),
+                            vehicleLocation.getHeading(),
+                            resourceProvider
+                        )
+                    );
+                }
+                return markers;
+            });
     }
 
     @Override
@@ -136,10 +169,10 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
             ));
     }
 
-    private Observable<Result<RouteInfoModel>> fetchRouteInfo(final DeviceLocator deviceLocator) {
-        return deviceLocator.getLastKnownLocation()
+    private Observable<Result<RouteInfoModel>> fetchRouteInfo() {
+        return currentLocation
             .observeOn(schedulerProvider.computation())
-            .flatMapObservable(origin -> routeInteractor.getRoute(origin.getLatLng(), destination))
+            .flatMap(origin -> routeInteractor.getRoute(origin.getLatLng(), destination))
             .retry(RETRY_COUNT)
             .map(Result::success)
             .doOnError(error -> Timber.e(error, "Failed to get route to destination"))

@@ -15,43 +15,75 @@
  */
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
+import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.model.LatLng;
+import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.map.CameraUpdate;
 import ai.rideos.android.common.model.map.CenterPin;
 import ai.rideos.android.common.model.map.DrawableMarker;
+import ai.rideos.android.common.model.map.DrawableMarker.Anchor;
 import ai.rideos.android.common.model.map.DrawablePath;
+import ai.rideos.android.common.model.map.LatLngBounds;
 import ai.rideos.android.common.model.map.MapSettings;
 import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
+import ai.rideos.android.common.utils.Markers;
+import ai.rideos.android.common.utils.Paths;
+import ai.rideos.android.common.view.resources.ResourceProvider;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.subjects.BehaviorSubject;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import timber.log.Timber;
 
 public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewModel {
     private static final int RETRY_COUNT = 2;
+    private static final int POLL_INTERVAL_MILLIS = 1000;
 
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final GeocodeInteractor geocodeInteractor;
     private final SchedulerProvider schedulerProvider;
     private final LatLng destination;
+    private final int drawableDestinationPin;
+    private final ResourceProvider resourceProvider;
+    private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
 
-    public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor, final LatLng destination) {
+    public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
+                                             final LatLng destination,
+                                             final int drawableDestinationPin,
+                                             final DeviceLocator deviceLocator,
+                                             final ResourceProvider resourceProvider) {
         this(
             geocodeInteractor,
             destination,
+            drawableDestinationPin,
+            deviceLocator,
+            resourceProvider,
             new DefaultSchedulerProvider()
         );
     }
 
     public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
                                              final LatLng destination,
+                                             final int drawableDestinationPin,
+                                             final DeviceLocator deviceLocator,
+                                             final ResourceProvider resourceProvider,
                                              final SchedulerProvider schedulerProvider) {
         this.geocodeInteractor = geocodeInteractor;
         this.schedulerProvider = schedulerProvider;
         this.destination = destination;
+        this.drawableDestinationPin = drawableDestinationPin;
+        this.resourceProvider = resourceProvider;
+
+        compositeDisposable.add(
+            deviceLocator.observeCurrentLocation(POLL_INTERVAL_MILLIS).subscribe(currentLocation::onNext)
+        );
     }
 
     @Override
@@ -70,29 +102,46 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     }
 
     @Override
-    public void destroy() {
-        // Do nothing
-    }
-
-    // This view doesn't require any markers or routes, so these methods should just return empty maps/lists.
-    // TODO can consider zooming on destination and showing the current location as a car marker
-    @Override
     public Observable<MapSettings> getMapSettings() {
-        return Observable.just(new MapSettings(true, CenterPin.hidden()));
+        return Observable.just(new MapSettings(false, CenterPin.hidden()));
     }
 
     @Override
     public Observable<CameraUpdate> getCameraUpdates() {
-        return Observable.empty();
+        return currentLocation.observeOn(schedulerProvider.computation())
+            .map(location -> {
+                final LatLngBounds bounds = Paths.getBoundsForPath(Arrays.asList(
+                    location.getLatLng(),
+                    destination
+                ));
+                return CameraUpdate.fitToBounds(bounds);
+            });
     }
 
     @Override
     public Observable<Map<String, DrawableMarker>> getMarkers() {
-        return Observable.just(Collections.emptyMap());
+        return currentLocation.observeOn(schedulerProvider.computation())
+            .map(location -> {
+                final Map<String, DrawableMarker> markers = new HashMap<>();
+                markers.put(
+                    "destination",
+                    new DrawableMarker(destination, 0, drawableDestinationPin, Anchor.BOTTOM)
+                );
+                markers.put(
+                    Markers.VEHICLE_KEY,
+                    Markers.getVehicleMarker(location.getLatLng(), location.getHeading(), resourceProvider)
+                );
+                return markers;
+            });
     }
 
     @Override
     public Observable<List<DrawablePath>> getPaths() {
         return Observable.just(Collections.emptyList());
+    }
+
+    @Override
+    public void destroy() {
+        compositeDisposable.dispose();
     }
 }

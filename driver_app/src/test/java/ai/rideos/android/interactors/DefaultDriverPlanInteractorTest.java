@@ -23,6 +23,8 @@ import ai.rideos.android.model.TripResourceInfo;
 import ai.rideos.android.model.VehiclePlan;
 import ai.rideos.android.model.VehiclePlan.Action.ActionType;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.ContactInfo;
+import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.RiderInfo;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Plan;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Step;
@@ -50,12 +52,12 @@ public class DefaultDriverPlanInteractorTest {
     private static final String VEHICLE_ID = "vehicle-1";
 
     private static final String TRIP_0 = "trip-0";
-    private static final TripResourceInfo TRIP_0_RESOURCE = new TripResourceInfo(1);
+    private static final TripResourceInfo TRIP_0_RESOURCE = new TripResourceInfo(1, "Rider");
     private static final LatLng PICKUP_0 = new LatLng(1, 2);
     private static final LatLng DROP_OFF_0 = new LatLng(3, 4);
 
     private static final String TRIP_1 = "trip-1";
-    private static final TripResourceInfo TRIP_1_RESOURCE = new TripResourceInfo(2);
+    private static final TripResourceInfo TRIP_1_RESOURCE = new TripResourceInfo(2, "Rider 2");
     private static final LatLng DROP_OFF_1 = new LatLng(7, 8);
 
     @Rule
@@ -113,7 +115,15 @@ public class DefaultDriverPlanInteractorTest {
                             .setTripId(TRIP_0)
                             .setId("step-1")
                             .setPosition(Locations.toRideOsPosition(PICKUP_0))
-                            .setPickupRider(PickupRider.newBuilder().setRiderCount(TRIP_0_RESOURCE.getNumPassengers()))
+                            .setPickupRider(PickupRider.newBuilder()
+                                .setRiderCount(TRIP_0_RESOURCE.getNumPassengers())
+                                .setRiderInfo(RiderInfo.newBuilder()
+                                    .setContactInfo(
+                                        ContactInfo.newBuilder()
+                                            .setName(TRIP_0_RESOURCE.getNameOfTripRequester())
+                                    )
+                                )
+                            )
                     )
                     .addStep(
                         Step.newBuilder()
@@ -127,7 +137,15 @@ public class DefaultDriverPlanInteractorTest {
                             .setTripId(TRIP_0)
                             .setId("step-3")
                             .setPosition(Locations.toRideOsPosition(DROP_OFF_0))
-                            .setDropoffRider(DropoffRider.newBuilder().setRiderCount(TRIP_0_RESOURCE.getNumPassengers()))
+                            .setDropoffRider(DropoffRider.newBuilder()
+                                .setRiderCount(TRIP_0_RESOURCE.getNumPassengers())
+                                .setRiderInfo(RiderInfo.newBuilder()
+                                    .setContactInfo(
+                                        ContactInfo.newBuilder()
+                                            .setName(TRIP_0_RESOURCE.getNameOfTripRequester())
+                                    )
+                                )
+                            )
                     )
             ))
             .build();
@@ -171,7 +189,15 @@ public class DefaultDriverPlanInteractorTest {
                             .setTripId(TRIP_0)
                             .setId("step-1")
                             .setPosition(Locations.toRideOsPosition(PICKUP_0))
-                            .setPickupRider(PickupRider.newBuilder().setRiderCount(TRIP_0_RESOURCE.getNumPassengers()))
+                            .setPickupRider(PickupRider.newBuilder()
+                                .setRiderCount(TRIP_0_RESOURCE.getNumPassengers())
+                                .setRiderInfo(RiderInfo.newBuilder()
+                                    .setContactInfo(
+                                        ContactInfo.newBuilder()
+                                            .setName(TRIP_0_RESOURCE.getNameOfTripRequester())
+                                    )
+                                )
+                            )
                     )
                     .addStep(
                         Step.newBuilder()
@@ -185,7 +211,15 @@ public class DefaultDriverPlanInteractorTest {
                             .setTripId(TRIP_1)
                             .setId("step-0")
                             .setPosition(Locations.toRideOsPosition(DROP_OFF_1))
-                            .setDropoffRider(DropoffRider.newBuilder().setRiderCount(TRIP_1_RESOURCE.getNumPassengers()))
+                            .setDropoffRider(DropoffRider.newBuilder()
+                                .setRiderCount(TRIP_1_RESOURCE.getNumPassengers())
+                                .setRiderInfo(RiderInfo.newBuilder()
+                                    .setContactInfo(
+                                        ContactInfo.newBuilder()
+                                            .setName(TRIP_1_RESOURCE.getNameOfTripRequester())
+                                    )
+                                )
+                            )
                     )
                     .addStep(
                         Step.newBuilder()
@@ -199,7 +233,15 @@ public class DefaultDriverPlanInteractorTest {
                             .setTripId(TRIP_0)
                             .setId("step-2")
                             .setPosition(Locations.toRideOsPosition(DROP_OFF_0))
-                            .setDropoffRider(DropoffRider.newBuilder().setRiderCount(TRIP_0_RESOURCE.getNumPassengers()))
+                            .setDropoffRider(DropoffRider.newBuilder()
+                                .setRiderCount(TRIP_0_RESOURCE.getNumPassengers())
+                                .setRiderInfo(RiderInfo.newBuilder()
+                                    .setContactInfo(
+                                        ContactInfo.newBuilder()
+                                            .setName(TRIP_0_RESOURCE.getNameOfTripRequester())
+                                    )
+                                )
+                            )
                     )
             ))
             .build();

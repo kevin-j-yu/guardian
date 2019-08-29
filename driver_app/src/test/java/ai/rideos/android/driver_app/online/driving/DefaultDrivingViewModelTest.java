@@ -32,7 +32,7 @@ public class DefaultDrivingViewModelTest {
     private static final Waypoint MOCK_WAYPOINT = new Waypoint(
         "task-1",
         Collections.singletonList("step-1"),
-        new Action(DESTINATION, ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1))
+        new Action(DESTINATION, ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1, "Rider"))
     );
 
     private DefaultDrivingViewModel viewModelUnderTest;

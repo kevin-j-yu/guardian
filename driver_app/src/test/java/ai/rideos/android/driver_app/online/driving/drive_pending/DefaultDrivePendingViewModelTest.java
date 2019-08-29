@@ -44,6 +44,7 @@ public class DefaultDrivePendingViewModelTest {
         1000
     );
     private static final String SUCCESS_ROUTE_DISPLAY = "success";
+    private static final int DESTINATION_PIN = 1;
 
     private DefaultDrivePendingViewModel viewModelUnderTest;
     private RouteInteractor routeInteractor;
@@ -70,6 +71,7 @@ public class DefaultDrivePendingViewModelTest {
             routeInteractor,
             Mockito.mock(ResourceProvider.class),
             DESTINATION,
+            DESTINATION_PIN,
             new TrampolineSchedulerProvider(),
             routeFormatter
         );
@@ -98,8 +100,8 @@ public class DefaultDrivePendingViewModelTest {
         viewModelUnderTest.getMarkers().test()
             .assertValueCount(1)
             .assertValueAt(0, map ->
-                map.get(Markers.PICKUP_MARKER_KEY).getPosition().equals(ORIGIN)
-                    && map.get(Markers.DROP_OFF_MARKER_KEY).getPosition().equals(DESTINATION)
+                map.get("destination").getPosition().equals(DESTINATION)
+                    && map.get(Markers.VEHICLE_KEY).getPosition().equals(ORIGIN)
             );
     }
 

@@ -57,7 +57,7 @@ public class DefaultOnlineViewModelTest {
     private static final Waypoint MOCK_WAYPOINT = new Waypoint(
         "task-1",
         Collections.singletonList("step-1"),
-        new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1))
+        new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1, "Rider"))
     );
 
     private DefaultOnlineViewModel viewModelUnderTest;
@@ -115,7 +115,7 @@ public class DefaultOnlineViewModelTest {
         final Waypoint currentWaypoint = new Waypoint(
             "task-1",
             Collections.singletonList("step-1"),
-            new Action(LOCATION.getLatLng(), stepAction, new TripResourceInfo(1))
+            new Action(LOCATION.getLatLng(), stepAction, new TripResourceInfo(1, "Rider"))
         );
         Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
             .thenReturn(Observable.just(
@@ -202,13 +202,13 @@ public class DefaultOnlineViewModelTest {
         final Waypoint waypoint1 = new Waypoint(
             "task-2",
             Collections.singletonList("step-2"),
-            new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1))
+            new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(1, "Rider"))
         );
 
         final Waypoint waypoint2 = new Waypoint(
             "task-3",
             Collections.singletonList("step-2"),
-            new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_DROP_OFF, new TripResourceInfo(1))
+            new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_DROP_OFF, new TripResourceInfo(1, "Rider"))
         );
 
         // The first time the view model gets the plan, return waypoint1 as the second waypoint. The second time,

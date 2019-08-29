@@ -66,22 +66,18 @@ import timber.log.Timber;
 public class DefaultRiderTripStateInteractor
     extends GrpcServerInteractor<RideHailRiderServiceFutureStub>
     implements RiderTripStateInteractor {
-    private final RouteInteractor backupRouteInteractor;
     private final PolylineDecoder polylineDecoder;
 
     public DefaultRiderTripStateInteractor(final Supplier<ManagedChannel> channelSupplier,
-                                           final User user,
-                                           final RouteInteractor backupRouteInteractor) {
-        this(channelSupplier, user, backupRouteInteractor, new GMSPolylineDecoder(), new DefaultSchedulerProvider());
+                                           final User user) {
+        this(channelSupplier, user, new GMSPolylineDecoder(), new DefaultSchedulerProvider());
     }
 
     public DefaultRiderTripStateInteractor(final Supplier<ManagedChannel> channelSupplier,
                                            final User user,
-                                           final RouteInteractor backupRouteInteractor,
                                            final PolylineDecoder polylineDecoder,
                                            final SchedulerProvider schedulerProvider) {
         super(RideHailRiderServiceGrpc::newFutureStub, channelSupplier, user, schedulerProvider);
-        this.backupRouteInteractor = backupRouteInteractor;
         this.polylineDecoder = polylineDecoder;
     }
 
@@ -93,8 +89,7 @@ public class DefaultRiderTripStateInteractor
                     GetTripStateRequestRC.newBuilder()
                         .setId(tripId)
                         .build()
-                ))
-                    .flatMap(state -> resolveRouteIfMissing(state.getState(), tripId)),
+                )),
                 // TODO we can probably just call this once in whatever interactor requires the pickup/drop-off location
                 Single.fromFuture(rideHailStub.getTripDefinition(
                     GetTripDefinitionRequest.newBuilder()
@@ -102,9 +97,8 @@ public class DefaultRiderTripStateInteractor
                         .build()
                 ))
                     .flatMap(response -> resolveStopsToPickupDropOff(response.getDefinition(), fleetId)),
-                (stateAndRoute, pickupAndDropOff) -> new CompleteTripInfo(
-                    stateAndRoute.first,
-                    stateAndRoute.second,
+                (stateResponse, pickupAndDropOff) -> new CompleteTripInfo(
+                    stateResponse.getState(),
                     pickupAndDropOff.first,
                     pickupAndDropOff.second
                 )
@@ -129,7 +123,7 @@ public class DefaultRiderTripStateInteractor
                         final AssignedVehicle pickupVehicle = tripState.getDrivingToPickup().getAssignedVehicle();
                         return new TripStateModel(
                             Stage.DRIVING_TO_PICKUP,
-                            tripInfo.routeInfo,
+                            getRouteInfoFromTrip(pickupVehicle, tripState.getTripStateCase(), tripId),
                             getVehicleInfoFromTrip(pickupVehicle.getInfo()),
                             getVehiclePosition(pickupVehicle),
                             pickup,
@@ -153,7 +147,7 @@ public class DefaultRiderTripStateInteractor
                         final AssignedVehicle dropOffVehicle = tripState.getDrivingToDropoff().getAssignedVehicle();
                         return new TripStateModel(
                             Stage.DRIVING_TO_DROP_OFF,
-                            tripInfo.routeInfo,
+                            getRouteInfoFromTrip(dropOffVehicle, tripState.getTripStateCase(), tripId),
                             getVehicleInfoFromTrip(tripState.getDrivingToDropoff().getAssignedVehicle().getInfo()),
                             getVehiclePosition(dropOffVehicle),
                             pickup,
@@ -196,52 +190,6 @@ public class DefaultRiderTripStateInteractor
                         );
                 }
             });
-    }
-
-    private Single<Pair<TripState, RouteInfoModel>> resolveRouteIfMissing(final TripState state,
-                                                                          final String tripId) {
-        final TripStateCase stateCase = state.getTripStateCase();
-        if (stateCase != TripStateCase.DRIVING_TO_PICKUP && stateCase != TripStateCase.DRIVING_TO_DROPOFF) {
-            return Single.just(Pair.create(state, null));
-        }
-        final AssignedVehicle vehicle = stateCase == TripStateCase.DRIVING_TO_PICKUP
-            ? state.getDrivingToPickup().getAssignedVehicle()
-            : state.getDrivingToDropoff().getAssignedVehicle();
-
-        final List<Step> stepList = stepsUntilCurrent(vehicle.getPlanThroughTripEnd().getStepList(), tripId, stateCase);
-
-        final boolean allRoutesPresent = stepList.stream()
-            .filter(step -> step.getVehicleActionCase() == VehicleActionCase.DRIVE_TO_LOCATION)
-            .map(step -> step.getDriveToLocation().getRoute().getPolyline())
-            .allMatch(polyline -> polyline.length() > 0);
-
-        if (allRoutesPresent) {
-            return Single.just(Pair.create(state, getRouteInfoFromTrip(vehicle, stateCase, tripId)));
-        }
-
-        final List<LatLng> waypoints = stepList.stream()
-            .filter(step -> step.getVehicleActionCase() == VehicleActionCase.DRIVE_TO_LOCATION)
-            .map(step -> Locations.fromRideOsPosition(step.getPosition()))
-            .collect(Collectors.toList());
-        waypoints.add(0, Locations.fromRideOsPosition(vehicle.getPosition()));
-        return backupRouteInteractor.getRouteForWaypoints(waypoints)
-            .map(routes -> routes.stream()
-                .reduce(
-                    new RouteInfoModel(Collections.emptyList(), 0, 0),
-                    (r1, r2) -> {
-                        final List<LatLng> combined = Stream.of(r1.getRoute(), r2.getRoute())
-                            .flatMap(List::stream)
-                            .collect(Collectors.toList());
-                        return new RouteInfoModel(
-                            combined,
-                            r1.getTravelTimeMillis() + r2.getTravelTimeMillis(),
-                            r1.getTravelDistanceMeters() + r2.getTravelDistanceMeters()
-                        );
-                    }
-                )
-            )
-            .map(route -> Pair.create(state, route))
-            .firstOrError();
     }
 
     private RouteInfoModel getRouteInfoFromTrip(final AssignedVehicle assignedVehicle,
@@ -373,16 +321,13 @@ public class DefaultRiderTripStateInteractor
 
     private static class CompleteTripInfo {
         private final TripState tripState;
-        private final RouteInfoModel routeInfo;
         private final LatLng pickup;
         private final LatLng dropOff;
 
         private CompleteTripInfo(final TripState tripState,
-                                 final RouteInfoModel routeInfo,
                                  final LatLng pickup,
                                  final LatLng dropOff) {
             this.tripState = tripState;
-            this.routeInfo = routeInfo;
             this.pickup = pickup;
             this.dropOff = dropOff;
         }

@@ -163,8 +163,8 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     }
 
     @Override
-    public void goOffline() {
-        listener.goOffline();
+    public void didGoOffline() {
+        listener.didGoOffline();
     }
 
     private Disposable subscribeToPlanUpdates(final int updateIntervalMillis) {
@@ -204,5 +204,6 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     @Override
     public void destroy() {
         compositeDisposable.dispose();
+        vehicleInteractor.shutDown();
     }
 }

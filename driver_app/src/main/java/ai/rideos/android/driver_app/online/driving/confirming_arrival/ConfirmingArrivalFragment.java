@@ -20,16 +20,20 @@ import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
+import ai.rideos.android.common.view.resources.AndroidResourceProvider;
+import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
 import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
 import ai.rideos.android.driver_app.online.driving.confirming_arrival.ConfirmingArrivalFragment.ConfirmingArrivalArgs;
 import ai.rideos.android.view.ActionDetailView;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.AttrRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -38,10 +42,14 @@ import java.io.Serializable;
 public class ConfirmingArrivalFragment extends FragmentViewController<ConfirmingArrivalArgs, ConfirmArrivalListener> {
     public static class ConfirmingArrivalArgs implements Serializable {
         private final int titleTextResourceId;
+        private final int drawableDestinationPinAttr;
         private final LatLng destination;
 
-        public ConfirmingArrivalArgs(@StringRes final int titleTextResourceId, final LatLng destination) {
+        public ConfirmingArrivalArgs(@StringRes final int titleTextResourceId,
+                                     @AttrRes final int drawableDestinationPinAttr,
+                                     final LatLng destination) {
             this.titleTextResourceId = titleTextResourceId;
+            this.drawableDestinationPinAttr = drawableDestinationPinAttr;
             this.destination = destination;
         }
     }
@@ -57,9 +65,13 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final ResourceProvider resourceProvider = AndroidResourceProvider.forContext(getContext());
         arrivalViewModel = new DefaultConfirmingArrivalViewModel(
             DriverDependencyRegistry.mapDependencyFactory().getGeocodeInteractor(getContext()),
-            getArgs().destination
+            getArgs().destination,
+            resourceProvider.getDrawableId(getArgs().drawableDestinationPinAttr),
+            new PotentiallySimulatedDeviceLocator(getContext()),
+            resourceProvider
         );
     }
 

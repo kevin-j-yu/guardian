@@ -16,13 +16,12 @@
 package ai.rideos.android.interactors;
 
 import ai.rideos.android.common.model.LocationAndHeading;
-import ai.rideos.android.model.VehicleRegistration;
 import ai.rideos.android.model.VehicleDisplayRouteLeg;
+import ai.rideos.android.model.VehicleRegistration;
 import ai.rideos.android.model.VehicleStatus;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import java.util.List;
-import java.util.Set;
 
 public interface DriverVehicleInteractor {
     Single<VehicleStatus> getVehicleStatus(final String vehicleId);
@@ -38,4 +37,6 @@ public interface DriverVehicleInteractor {
     Completable updateVehicleLocation(final String vehicleId, final LocationAndHeading locationAndHeading);
 
     Completable updateVehicleRoute(final String vehicleId, final List<VehicleDisplayRouteLeg> updatedLegs);
+
+    void shutDown();
 }

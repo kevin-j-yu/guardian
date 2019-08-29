@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -40,10 +41,14 @@ import java.io.Serializable;
 public class DrivePendingFragment extends FragmentViewController<DrivePendingArgs, StartNavigationListener> {
     public static class DrivePendingArgs implements Serializable {
         private final int titleTextResourceId;
+        private final int drawableDestinationPinAttr;
         private final LatLng destination;
 
-        public DrivePendingArgs(@StringRes final int titleTextResourceId, final LatLng destination) {
+        public DrivePendingArgs(@StringRes final int titleTextResourceId,
+                                @AttrRes final int drawableDestinationPinAttr,
+                                final LatLng destination) {
             this.titleTextResourceId = titleTextResourceId;
+            this.drawableDestinationPinAttr = drawableDestinationPinAttr;
             this.destination = destination;
         }
     }
@@ -63,7 +68,8 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
             new PotentiallySimulatedDeviceLocator(getContext()),
             DriverDependencyRegistry.driverDependencyFactory().getRouteInteractor(getContext()),
             AndroidResourceProvider.forContext(getContext()),
-            getArgs().destination
+            getArgs().destination,
+            AndroidResourceProvider.forContext(getContext()).getDrawableId(getArgs().drawableDestinationPinAttr)
         );
     }
 

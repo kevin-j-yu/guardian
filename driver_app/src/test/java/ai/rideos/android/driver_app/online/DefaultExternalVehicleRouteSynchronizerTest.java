@@ -44,7 +44,7 @@ import org.mockito.Mockito;
 public class DefaultExternalVehicleRouteSynchronizerTest {
     private static final String USER_ID = "user";
     private static final LocationAndHeading CURRENT_LOCATION = new LocationAndHeading(new LatLng(1, 2), 1.0f);
-    private static final TripResourceInfo TRIP_INFO = new TripResourceInfo(1);
+    private static final TripResourceInfo TRIP_INFO = new TripResourceInfo(1, "Rider");
 
     private DefaultExternalVehicleRouteSynchronizer synchronizer;
     private DriverVehicleInteractor vehicleInteractor;

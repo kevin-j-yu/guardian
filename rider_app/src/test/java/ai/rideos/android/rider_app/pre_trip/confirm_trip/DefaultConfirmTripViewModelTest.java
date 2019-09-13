@@ -38,8 +38,8 @@ import ai.rideos.android.common.utils.DrawablePaths;
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.view.strings.RouteFormatter;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.model.RouteTimeDistanceDisplay;
-import ai.rideos.android.rider_app.pre_trip.confirm_trip.ConfirmTripViewModel.FetchingRouteStatus;
 import ai.rideos.android.settings.RiderMetadataKeys;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
@@ -214,17 +214,17 @@ public class DefaultConfirmTripViewModelTest {
             RetryBehaviors.neverRetry()
         );
 
-        final TestObserver<FetchingRouteStatus> statusObserver = viewModelUnderTest.getFetchingRouteStatus().test();
+        final TestObserver<ProgressState> statusObserver = viewModelUnderTest.getFetchingRouteProgress().test();
         testScheduler.triggerActions();
         statusObserver.assertValueCount(1)
-            .assertValueAt(0, FetchingRouteStatus.IN_PROGRESS);
+            .assertValueAt(0, ProgressState.LOADING);
 
         viewModelUnderTest.setOriginAndDestination(ORIGIN, DESTINATION);
         statusObserver.assertValueCount(1);
 
         testScheduler.advanceTimeBy(routeDelayMs, TimeUnit.MILLISECONDS);
         statusObserver.assertValueCount(2)
-            .assertValueAt(1, FetchingRouteStatus.IDLE);
+            .assertValueAt(1, ProgressState.SUCCEEDED);
     }
 
     @Test
@@ -245,8 +245,8 @@ public class DefaultConfirmTripViewModelTest {
         );
 
         viewModelUnderTest.setOriginAndDestination(ORIGIN, DESTINATION);
-        viewModelUnderTest.getFetchingRouteStatus().test()
-            .assertValueAt(0, FetchingRouteStatus.ERROR);
+        viewModelUnderTest.getFetchingRouteProgress().test()
+            .assertValueAt(0, ProgressState.FAILED);
     }
 
     @Test

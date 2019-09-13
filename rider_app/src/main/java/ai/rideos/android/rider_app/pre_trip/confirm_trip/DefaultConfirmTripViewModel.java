@@ -35,6 +35,8 @@ import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.view.strings.RouteFormatter;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.model.RouteTimeDistanceDisplay;
 import ai.rideos.android.settings.RiderMetadataKeys;
 import androidx.core.util.Pair;
@@ -55,7 +57,7 @@ public class DefaultConfirmTripViewModel implements ConfirmTripViewModel {
 
     private final BehaviorSubject<PickupDropOff> pickupDropOffSubject = BehaviorSubject.create();
     private final BehaviorSubject<Result<RouteInfoModel>> routeResponseSubject = BehaviorSubject.create();
-    private final BehaviorSubject<FetchingRouteStatus> statusSubject;
+    private final ProgressSubject progressSubject;
 
     private final RouteInteractor routeInteractor;
     private final SchedulerProvider schedulerProvider;
@@ -95,7 +97,7 @@ public class DefaultConfirmTripViewModel implements ConfirmTripViewModel {
         this.retryBehavior = retryBehavior;
         this.metadataReader = metadataReader;
 
-        statusSubject = BehaviorSubject.createDefault(FetchingRouteStatus.IN_PROGRESS);
+        progressSubject = new ProgressSubject(ProgressState.LOADING);
 
         compositeDisposable.add(
             pickupDropOffSubject
@@ -103,9 +105,9 @@ public class DefaultConfirmTripViewModel implements ConfirmTripViewModel {
                 .flatMap(this::getRouteForPickupDropOff)
                 .subscribe(response -> {
                     if (response.isSuccess()) {
-                        statusSubject.onNext(FetchingRouteStatus.IDLE);
+                        progressSubject.succeeded();
                     } else {
-                        statusSubject.onNext(FetchingRouteStatus.ERROR);
+                        progressSubject.failed();
                     }
                     routeResponseSubject.onNext(response);
                 })
@@ -144,9 +146,8 @@ public class DefaultConfirmTripViewModel implements ConfirmTripViewModel {
     }
 
     @Override
-    public Observable<FetchingRouteStatus> getFetchingRouteStatus() {
-        return statusSubject.observeOn(schedulerProvider.computation())
-            .distinctUntilChanged();
+    public Observable<ProgressState> getFetchingRouteProgress() {
+        return progressSubject.observeProgress();
     }
 
     @Override

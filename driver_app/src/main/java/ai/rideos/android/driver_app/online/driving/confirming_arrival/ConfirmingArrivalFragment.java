@@ -16,21 +16,25 @@
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
 import ai.rideos.android.common.app.map.MapRelay;
+import ai.rideos.android.common.app.progress.ProgressConnector;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
-import ai.rideos.android.common.model.LatLng;
+import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
+import ai.rideos.android.common.view.layout.LoadableDividerView;
 import ai.rideos.android.common.view.resources.AndroidResourceProvider;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
 import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
 import ai.rideos.android.driver_app.online.driving.confirming_arrival.ConfirmingArrivalFragment.ConfirmingArrivalArgs;
-import ai.rideos.android.view.ActionDetailView;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -43,14 +47,14 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
     public static class ConfirmingArrivalArgs implements Serializable {
         private final int titleTextResourceId;
         private final int drawableDestinationPinAttr;
-        private final LatLng destination;
+        private final Waypoint waypoint;
 
         public ConfirmingArrivalArgs(@StringRes final int titleTextResourceId,
                                      @AttrRes final int drawableDestinationPinAttr,
-                                     final LatLng destination) {
+                                     final Waypoint waypoint) {
             this.titleTextResourceId = titleTextResourceId;
             this.drawableDestinationPinAttr = drawableDestinationPinAttr;
-            this.destination = destination;
+            this.waypoint = waypoint;
         }
     }
 
@@ -68,7 +72,9 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
         final ResourceProvider resourceProvider = AndroidResourceProvider.forContext(getContext());
         arrivalViewModel = new DefaultConfirmingArrivalViewModel(
             DriverDependencyRegistry.mapDependencyFactory().getGeocodeInteractor(getContext()),
-            getArgs().destination,
+            DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(getContext()),
+            User.get(getContext()),
+            getArgs().waypoint,
             resourceProvider.getDrawableId(getArgs().drawableDestinationPinAttr),
             new PotentiallySimulatedDeviceLocator(getContext()),
             resourceProvider
@@ -79,12 +85,10 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.action_detail);
-        final ActionDetailView drivingActionView = view.findViewById(R.id.action_detail_container);
+        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.confirming_arrival);
 
-        drivingActionView.getTitleView().setText(getArgs().titleTextResourceId);
-        drivingActionView.getActionButton().setText(R.string.confirm_arrival_button_text);
-        drivingActionView.getActionButton().setOnClickListener(click -> getListener().confirmArrival());
+        final TextView titleView = view.findViewById(R.id.confirming_arrival_title);
+        titleView.setText(getArgs().titleTextResourceId);
         return view;
 
     }
@@ -92,15 +96,38 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
     @Override
     public void onStart() {
         super.onStart();
-        final ActionDetailView drivingActionView = getView().findViewById(R.id.action_detail_container);
+        final View view = getView();
+
+        final Button confirmArrivalButton = view.findViewById(R.id.confirm_arrival_button);
+        confirmArrivalButton.setOnClickListener(click -> arrivalViewModel.confirmArrival());
+
+        final View expandDetailsButton = view.findViewById(R.id.expand_trip_details_button);
+        expandDetailsButton.setOnClickListener(click -> getListener().openTripDetails());
+
+        final LoadableDividerView loadableDividerView = view.findViewById(R.id.loadable_divider);
+
+        final TextView detailText = view.findViewById(R.id.confirming_arrival_detail);
+
         final Disposable mapSubscription = MapRelay.get().connectToProvider(arrivalViewModel);
 
         final Disposable detailSubscription = arrivalViewModel.getArrivalDetailText()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(detail -> drivingActionView.getDetailView().setText(detail));
+            .subscribe(detailText::setText);
 
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.addAll(mapSubscription, detailSubscription);
+
+        final ProgressConnector progressConnector = ProgressConnector.newBuilder()
+            .disableButtonWhenLoadingOrSuccessful(confirmArrivalButton)
+            .showLoadableDividerWhenLoading(loadableDividerView)
+            .alertOnFailure(getContext(), R.string.confirm_arrival_failure_message)
+            .doOnSuccess(() -> getListener().didConfirmArrival())
+            .build();
+        compositeDisposable.add(
+            progressConnector.connect(
+                arrivalViewModel.getConfirmingArrivalProgress().observeOn(AndroidSchedulers.mainThread())
+            )
+        );
     }
 
     @Override

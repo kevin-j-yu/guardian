@@ -15,8 +15,8 @@
  */
 package ai.rideos.android.driver_app.online.waiting_for_pickup;
 
+import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
-import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.map.CameraUpdate;
 import ai.rideos.android.common.model.map.CenterPin;
@@ -29,8 +29,12 @@ import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProv
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.driver_app.R;
+import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.TripResourceInfo;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -44,26 +48,31 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     private static final int POLL_INTERVAL_MILLIS = 1000;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private final TripResourceInfo tripResourceInfo;
-    private final LatLng pickupLocation;
+    private final Waypoint waypoint;
+    private final DriverVehicleInteractor vehicleInteractor;
+    private final User user;
     private final ResourceProvider resourceProvider;
     private final SchedulerProvider schedulerProvider;
     private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
+    private final ProgressSubject progressSubject = new ProgressSubject();
 
-    public DefaultWaitingForPickupViewModel(final TripResourceInfo tripResourceInfo,
-                                            final LatLng pickupLocation,
+    public DefaultWaitingForPickupViewModel(final DriverVehicleInteractor vehicleInteractor,
+                                            final User user,
+                                            final Waypoint waypoint,
                                             final ResourceProvider resourceProvider,
                                             final DeviceLocator deviceLocator) {
-        this(tripResourceInfo, pickupLocation, resourceProvider, deviceLocator, new DefaultSchedulerProvider());
+        this(vehicleInteractor, user, waypoint, resourceProvider, deviceLocator, new DefaultSchedulerProvider());
     }
 
-    public DefaultWaitingForPickupViewModel(final TripResourceInfo tripResourceInfo,
-                                            final LatLng pickupLocation,
+    public DefaultWaitingForPickupViewModel(final DriverVehicleInteractor vehicleInteractor,
+                                            final User user,
+                                            final Waypoint waypoint,
                                             final ResourceProvider resourceProvider,
                                             final DeviceLocator deviceLocator,
                                             final SchedulerProvider schedulerProvider) {
-        this.tripResourceInfo = tripResourceInfo;
-        this.pickupLocation = pickupLocation;
+        this.waypoint = waypoint;
+        this.vehicleInteractor = vehicleInteractor;
+        this.user = user;
         this.resourceProvider = resourceProvider;
         this.schedulerProvider = schedulerProvider;
         compositeDisposable.add(
@@ -74,6 +83,7 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     @Override
     public String getPassengersToPickupText() {
         final String passengersToPickupText;
+        final TripResourceInfo tripResourceInfo = waypoint.getAction().getTripResourceInfo();
         if (tripResourceInfo.getNumPassengers() > 1) {
             final int numberOfRidersExcludingRequester = tripResourceInfo.getNumPassengers() - 1;
             passengersToPickupText = String.format(
@@ -89,6 +99,24 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     }
 
     @Override
+    public void confirmPickup() {
+        compositeDisposable.add(
+            progressSubject.followAsyncOperation(
+                vehicleInteractor.finishSteps(
+                    user.getId(),
+                    waypoint.getTaskId(),
+                    waypoint.getStepIds()
+                )
+            )
+        );
+    }
+
+    @Override
+    public Observable<ProgressState> getConfirmingPickupProgress() {
+        return progressSubject.observeProgress();
+    }
+
+    @Override
     public Observable<MapSettings> getMapSettings() {
         return Observable.just(new MapSettings(false, CenterPin.hidden()));
     }
@@ -99,7 +127,7 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
             .map(location -> {
                 final LatLngBounds bounds = Paths.getBoundsForPath(Arrays.asList(
                     location.getLatLng(),
-                    pickupLocation
+                    waypoint.getAction().getDestination()
                 ));
                 return CameraUpdate.fitToBounds(bounds);
             });
@@ -110,7 +138,10 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
         return currentLocation.observeOn(schedulerProvider.computation())
             .map(location -> {
                 final Map<String, DrawableMarker> markers = new HashMap<>();
-                markers.put(Markers.PICKUP_MARKER_KEY, Markers.getPickupMarker(pickupLocation, resourceProvider));
+                markers.put(
+                    Markers.PICKUP_MARKER_KEY,
+                    Markers.getPickupMarker(waypoint.getAction().getDestination(), resourceProvider)
+                );
                 markers.put(
                     Markers.VEHICLE_KEY,
                     Markers.getVehicleMarker(location.getLatLng(), location.getHeading(), resourceProvider)

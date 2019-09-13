@@ -129,7 +129,8 @@ public class MainFragmentActivity
     private void resolveFleetId() {
         final DefaultFleetResolver fleetResolver = new DefaultFleetResolver(
             RiderDependencyRegistry.riderDependencyFactory().getFleetInteractor(this),
-            new FusedLocationDeviceLocator(this)
+            new FusedLocationDeviceLocator(this),
+            new MetadataReader(this).getStringMetadata(CommonMetadataKeys.DEFAULT_FLEET_ID).getOrThrow()
         );
 
         final Disposable subscription = fleetResolver.resolveFleet(

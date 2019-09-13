@@ -16,6 +16,7 @@
 package ai.rideos.android.common.app;
 
 public class CommonMetadataKeys {
+    public static final String DEFAULT_FLEET_ID = "default_fleet_id";
     public static final String MAPBOX_TOKEN_KEY = "mapbox_token";
     public static final String ENABLE_DEVELOPER_OPTIONS_KEY = "enable_developer_options";
     public static final String ENABLE_PUSH_NOTIFICATIONS = "enable_push_notifications";

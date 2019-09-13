@@ -25,13 +25,14 @@ import ai.rideos.android.driver_app.online.driving.DrivingCoordinator;
 import ai.rideos.android.driver_app.online.driving.DrivingInput;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
 import ai.rideos.android.driver_app.online.idle.IdleFragment;
+import ai.rideos.android.driver_app.online.trip_details.TripDetailsFragment;
+import ai.rideos.android.driver_app.online.trip_details.TripDetailsFragment.TripDetailsArgs;
 import ai.rideos.android.driver_app.online.waiting_for_pickup.WaitingForPickupFragment;
 import ai.rideos.android.driver_app.online.waiting_for_pickup.WaitingForPickupFragment.WaitingForPickupArgs;
 import android.content.Context;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import timber.log.Timber;
 
 /**
  * OnlineViewController is a parent view controller for controlling the view when the driver's vehicle goes online.
@@ -52,7 +53,6 @@ public class OnlineCoordinator implements Coordinator<EmptyArg> {
         final User user = User.get(context);
         onlineViewModel = new DefaultOnlineViewModel(
             goOfflineListener,
-            DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(context),
             DriverDependencyRegistry.driverDependencyFactory().getDriverPlanInteractor(context),
             new DefaultExternalVehicleRouteSynchronizer(
                 DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(context),
@@ -87,6 +87,13 @@ public class OnlineCoordinator implements Coordinator<EmptyArg> {
                         navController.navigateTo(
                             new WaitingForPickupFragment(),
                             new WaitingForPickupArgs(state.getCurrentWaypoint()),
+                            onlineViewModel
+                        );
+                        return;
+                    case TRIP_DETAILS:
+                        navController.navigateTo(
+                            new TripDetailsFragment(),
+                            new TripDetailsArgs(state.getVehiclePlan()),
                             onlineViewModel
                         );
                 }

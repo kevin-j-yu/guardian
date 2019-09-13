@@ -16,23 +16,24 @@
 package ai.rideos.android.driver_app.online.idle;
 
 import ai.rideos.android.common.app.map.MapRelay;
+import ai.rideos.android.common.app.menu_navigator.OpenMenuListener;
+import ai.rideos.android.common.app.progress.ProgressConnector;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.EmptyArg;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.view.errors.ErrorDialog;
-import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
-import ai.rideos.android.common.view.layout.LoadableDividerView;
+import ai.rideos.android.common.view.layout.TopDetailView;
 import ai.rideos.android.common.viewmodel.map.FollowCurrentLocationMapStateProvider;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
 import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
 import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.Switch;
 import androidx.annotation.NonNull;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -64,43 +65,40 @@ public class IdleFragment extends FragmentViewController<EmptyArg, GoOfflineList
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        return BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.online_idle);
+        final View view = TopDetailView.inflateViewWithDetail(inflater, container, R.layout.online_idle);
+        final View topButton = view.findViewById(R.id.top_button);
+        final Activity activity = getActivity();
+        if (activity instanceof OpenMenuListener) {
+            topButton.setOnClickListener(click -> ((OpenMenuListener) activity).openMenu());
+        }
+        return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
         final View view = getView();
-        final Button goOnlineButton = view.findViewById(R.id.go_offline_button);
-        goOnlineButton.setOnClickListener(click -> idleViewModel.goOffline());
 
-        final LoadableDividerView loadableDividerView = view.findViewById(R.id.loadable_divider);
+        final Switch onlineOfflineToggle = view.findViewById(R.id.online_toggle_switch);
+        onlineOfflineToggle.setOnCheckedChangeListener((v, checked) -> {
+            if (!checked) {
+                idleViewModel.goOffline();
+            }
+        });
+
         final GoOfflineListener listener = getListener();
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.add(MapRelay.get().connectToProvider(mapStateProvider));
+
+        final ProgressConnector progressConnector = ProgressConnector.newBuilder()
+            .toggleSwitchWhenLoading(onlineOfflineToggle)
+            .alertOnFailure(getContext(), R.string.go_offline_failure_message)
+            .doOnSuccess(listener::didGoOffline)
+            .build();
         compositeDisposable.add(
-            idleViewModel.getIdleViewState()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(viewState -> {
-                    switch (viewState) {
-                        case ONLINE:
-                            goOnlineButton.setEnabled(true);
-                            loadableDividerView.stopLoading();
-                            break;
-                        case GOING_OFFLINE:
-                            goOnlineButton.setEnabled(false);
-                            loadableDividerView.startLoading();
-                            break;
-                        case OFFLINE:
-                            listener.didGoOffline();
-                            break;
-                        case FAILED_TO_GO_OFFLINE:
-                            goOnlineButton.setEnabled(true);
-                            loadableDividerView.stopLoading();
-                            showAlertDialog();
-                            break;
-                    }
-                })
+            progressConnector.connect(
+                idleViewModel.getGoingOfflineProgress().observeOn(AndroidSchedulers.mainThread())
+            )
         );
     }
 
@@ -109,10 +107,5 @@ public class IdleFragment extends FragmentViewController<EmptyArg, GoOfflineList
         super.onStop();
         compositeDisposable.dispose();
         idleViewModel.destroy();
-    }
-
-    private void showAlertDialog() {
-        new ErrorDialog(getContext())
-            .show(getContext().getString(R.string.go_offline_failure_message));
     }
 }

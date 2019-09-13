@@ -16,8 +16,7 @@
 package ai.rideos.android.driver_app.offline;
 
 import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
-import ai.rideos.android.driver_app.offline.OfflineViewModel.OfflineViewState;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
 import io.reactivex.Completable;
 import io.reactivex.observers.TestObserver;
@@ -37,25 +36,25 @@ public class DefaultOfflineViewModelTest {
         final User user = Mockito.mock(User.class);
         Mockito.when(user.getId()).thenReturn(VEHICLE_ID);
         vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
-        viewModelUnderTest = new DefaultOfflineViewModel(user, vehicleInteractor, new TrampolineSchedulerProvider());
+        viewModelUnderTest = new DefaultOfflineViewModel(user, vehicleInteractor);
     }
 
     @Test
-    public void testInitialStateDefaultsToOffline() {
-        viewModelUnderTest.getOfflineViewState().test()
-            .assertValueAt(0, OfflineViewState.OFFLINE);
+    public void testInitialStateDefaultsToIdle() {
+        viewModelUnderTest.getGoingOnlineProgress().test()
+            .assertValueAt(0, ProgressState.IDLE);
     }
 
     @Test
     public void testCanGoOnlineWhenOffline() {
-        final TestObserver<OfflineViewState> stateObserver = viewModelUnderTest.getOfflineViewState().test();
+        final TestObserver<ProgressState> stateObserver = viewModelUnderTest.getGoingOnlineProgress().test();
         Mockito.when(vehicleInteractor.markVehicleReady(Mockito.anyString())).thenReturn(Completable.complete());
         viewModelUnderTest.goOnline();
 
         stateObserver.assertValueCount(3)
-            .assertValueAt(0, OfflineViewState.OFFLINE)
-            .assertValueAt(1, OfflineViewState.GOING_ONLINE)
-            .assertValueAt(2, OfflineViewState.ONLINE);
+            .assertValueAt(0, ProgressState.IDLE)
+            .assertValueAt(1, ProgressState.LOADING)
+            .assertValueAt(2, ProgressState.SUCCEEDED);
 
         Mockito.verify(vehicleInteractor).markVehicleReady(VEHICLE_ID);
     }
@@ -66,8 +65,8 @@ public class DefaultOfflineViewModelTest {
             .thenReturn(Completable.error(new IOException()));
         viewModelUnderTest.goOnline();
 
-        viewModelUnderTest.getOfflineViewState().test()
-            .assertValueAt(0, OfflineViewState.FAILED_TO_GO_ONLINE);
+        viewModelUnderTest.getGoingOnlineProgress().test()
+            .assertValueAt(0, ProgressState.FAILED);
         Mockito.verify(vehicleInteractor).markVehicleReady(VEHICLE_ID);
     }
 
@@ -76,11 +75,10 @@ public class DefaultOfflineViewModelTest {
         Mockito.when(vehicleInteractor.markVehicleReady(Mockito.anyString())).thenReturn(Completable.complete());
         viewModelUnderTest.goOnline();
 
-        final TestObserver<OfflineViewState> stateObserver = viewModelUnderTest.getOfflineViewState().test();
+        final TestObserver<ProgressState> stateObserver = viewModelUnderTest.getGoingOnlineProgress().test();
         Mockito.verify(vehicleInteractor).markVehicleReady(VEHICLE_ID);
 
         viewModelUnderTest.goOnline();
-        stateObserver.assertValueCount(1).assertValueAt(0, OfflineViewState.ONLINE);
-        Mockito.verifyNoMoreInteractions(vehicleInteractor);
+        stateObserver.assertValueCount(1).assertValueAt(0, ProgressState.SUCCEEDED);
     }
 }

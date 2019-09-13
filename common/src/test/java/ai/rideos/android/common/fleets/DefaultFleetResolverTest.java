@@ -38,6 +38,7 @@ public class DefaultFleetResolverTest {
     private static final LocationAndHeading CURRENT_LOCATION
         = new LocationAndHeading(new LatLng(5, 5), 1.0f);
     private static final String MANUAL_FLEET_ID = "fleet-1";
+    private static final String DEFAULT_FLEET_ID = "default-fleet";
 
     private DefaultFleetResolver resolver;
     private FleetInteractor fleetInteractor;
@@ -52,6 +53,7 @@ public class DefaultFleetResolverTest {
         resolver = new DefaultFleetResolver(
             fleetInteractor,
             deviceLocator,
+            DEFAULT_FLEET_ID,
             new TestDistanceCalculator(),
             new TrampolineSchedulerProvider()
         );
@@ -75,7 +77,7 @@ public class DefaultFleetResolverTest {
             new FleetInfo("fleet-3")
         )));
         resolver.resolveFleet(Observable.just(MANUAL_FLEET_ID)).test()
-            .assertValueAt(0, FleetInfo.DEFAULT_FLEET);
+            .assertValueAt(0, new FleetInfo(DEFAULT_FLEET_ID));
     }
 
     @Test
@@ -130,14 +132,14 @@ public class DefaultFleetResolverTest {
     public void testDefaultFleetReturnedWhenNoFleetsFound() {
         Mockito.when(fleetInteractor.getFleets()).thenReturn(Observable.just(Collections.emptyList()));
         resolver.resolveFleet(Observable.just("unknown-fleet")).test()
-            .assertValueAt(0, FleetInfo.DEFAULT_FLEET);
+            .assertValueAt(0, new FleetInfo(DEFAULT_FLEET_ID));
     }
 
     @Test
     public void testDefaultFleetReturnedWhenFleetInteractorErrors() {
         Mockito.when(fleetInteractor.getFleets()).thenReturn(Observable.error(new IOException()));
         resolver.resolveFleet(Observable.just("unknown-fleet")).test()
-            .assertValueAt(0, FleetInfo.DEFAULT_FLEET);
+            .assertValueAt(0, new FleetInfo(DEFAULT_FLEET_ID));
     }
 
     @Test

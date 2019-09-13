@@ -39,20 +39,30 @@ public class DefaultFleetResolver implements FleetResolver {
 
     private final FleetInteractor fleetInteractor;
     private final DeviceLocator deviceLocator;
+    private final FleetInfo defaultFleetInfo;
     private final DistanceCalculator distanceCalculator;
     private final SchedulerProvider schedulerProvider;
 
     public DefaultFleetResolver(final FleetInteractor fleetInteractor,
-                                final DeviceLocator deviceLocator) {
-        this(fleetInteractor, deviceLocator, new HaversineDistanceCalculator(), new DefaultSchedulerProvider());
+                                final DeviceLocator deviceLocator,
+                                final String defaultFleetId) {
+        this(
+            fleetInteractor,
+            deviceLocator,
+            defaultFleetId,
+            new HaversineDistanceCalculator(),
+            new DefaultSchedulerProvider()
+        );
     }
 
     public DefaultFleetResolver(final FleetInteractor fleetInteractor,
                                 final DeviceLocator deviceLocator,
+                                final String defaultFleetId,
                                 final DistanceCalculator distanceCalculator,
                                 final SchedulerProvider schedulerProvider) {
         this.fleetInteractor = fleetInteractor;
         this.deviceLocator = deviceLocator;
+        this.defaultFleetInfo = new FleetInfo(defaultFleetId);
         this.distanceCalculator = distanceCalculator;
         this.schedulerProvider = schedulerProvider;
     }
@@ -88,7 +98,7 @@ public class DefaultFleetResolver implements FleetResolver {
             .observeOn(schedulerProvider.computation())
             .retry(RETRY_COUNT)
             .doOnError(e -> Timber.e(e, "Failed to resolve fleets"))
-            .onErrorReturnItem(Collections.singletonList(FleetInfo.DEFAULT_FLEET));
+            .onErrorReturnItem(Collections.singletonList(defaultFleetInfo));
     }
 
     private Observable<FleetInfo> resolveAutomatic() {
@@ -100,7 +110,7 @@ public class DefaultFleetResolver implements FleetResolver {
             .map(fleetsAndLocation -> {
                 final List<FleetInfo> fleets = fleetsAndLocation.first;
                 final LatLng location = fleetsAndLocation.second.getLatLng();
-                return findClosestFleet(fleets, location).orElse(FleetInfo.DEFAULT_FLEET);
+                return findClosestFleet(fleets, location).orElse(defaultFleetInfo);
             });
     }
 

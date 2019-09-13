@@ -22,33 +22,29 @@
         android:id="@+id/offline_frame"
         android:layout_width="match_parent"
         tools:ignore="MissingPrefix"
-        android:layout_gravity="bottom"
+        android:layout_gravity="top"
         android:elevation="10dp"
         android:background="?attr/rideos.primary_background_color"
         android:layout_height="wrap_content"
-        android:paddingBottom="12dp">
-    <TextView
-            android:text="@string/online_idle_title_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:id="@+id/online_view_title"
-            style="@style/DefaultTextViewStyle" android:textSize="20sp" android:textStyle="bold"
-            android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="parent" android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginStart="8dp"
-            app:layout_constraintStart_toStartOf="parent"/>
-    <ai.rideos.android.common.view.layout.LoadableDividerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/loadable_divider"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/online_view_title"/>
-    <Button
-            android:text="@string/go_offline_button_text"
-            android:layout_width="250dp"
-            android:layout_height="55dp" android:id="@+id/go_offline_button"
-            style="@style/DefaultActionButtonStyle"
-            android:layout_marginTop="12dp"
-            app:layout_constraintTop_toBottomOf="@id/loadable_divider" app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="8dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"/>
+        android:paddingTop="12dp">
+    <ImageButton
+            android:id="@+id/top_button"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="@string/menu_button_content_description"
+            android:src="@drawable/ic_menu"
+            android:tint="?attr/rideos.nav_icon_color"
+            android:background="?attr/rideos.primary_background_color"
+            android:layout_height="36dp"
+            android:layout_width="36dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="16dp"/>
+    <Switch
+            android:id="@+id/online_toggle_switch"
+            style="@style/OnlineOfflineSwitchStyle"
+            android:checked="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

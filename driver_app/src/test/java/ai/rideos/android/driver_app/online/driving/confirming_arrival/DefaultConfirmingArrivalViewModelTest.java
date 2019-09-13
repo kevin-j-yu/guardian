@@ -15,6 +15,7 @@
  */
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
+import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.model.LatLng;
@@ -28,9 +29,17 @@ import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerP
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
+import ai.rideos.android.interactors.DriverVehicleInteractor;
+import ai.rideos.android.model.VehiclePlan.Action;
+import ai.rideos.android.model.VehiclePlan.Action.ActionType;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -40,11 +49,18 @@ import org.mockito.Mockito;
 public class DefaultConfirmingArrivalViewModelTest {
     private static final LocationAndHeading CURRENT_LOCATION = new LocationAndHeading(new LatLng(0, 0), 1);
     private static final LatLng DESTINATION = new LatLng(1, 1);
+    private static final Waypoint WAYPOINT = new Waypoint(
+        "trip-1",
+        Collections.singletonList("step-1"),
+        new Action(DESTINATION, ActionType.DRIVE_TO_PICKUP, null)
+    );
+    private static final String USER_ID = "user-1";
     private static final int DESTINATION_PIN = 1;
     private static final int VEHICLE_PIN = 2;
 
     private DefaultConfirmingArrivalViewModel viewModelUnderTest;
     private GeocodeInteractor geocodeInteractor;
+    private DriverVehicleInteractor vehicleInteractor;
     private ResourceProvider resourceProvider;
 
     @Before
@@ -56,9 +72,14 @@ public class DefaultConfirmingArrivalViewModelTest {
         resourceProvider = Mockito.mock(ResourceProvider.class);
         Mockito.when(resourceProvider.getDrawableId(Mockito.anyInt()))
             .thenReturn(VEHICLE_PIN);
+        vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
+        final User user = Mockito.mock(User.class);
+        Mockito.when(user.getId()).thenReturn(USER_ID);
         viewModelUnderTest = new DefaultConfirmingArrivalViewModel(
             geocodeInteractor,
-            DESTINATION,
+            vehicleInteractor,
+            user,
+            WAYPOINT,
             DESTINATION_PIN,
             deviceLocator,
             resourceProvider,
@@ -107,5 +128,20 @@ public class DefaultConfirmingArrivalViewModelTest {
             .assertValueAt(0, map -> map.get("destination").getPosition().equals(DESTINATION)
                 && map.get(Markers.VEHICLE_KEY).getPosition().equals(CURRENT_LOCATION.getLatLng())
             );
+    }
+
+    @Test
+    public void testConfirmingArrivalUpdatesProgress() {
+        Mockito.when(vehicleInteractor.finishSteps(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
+            .thenReturn(Completable.complete());
+        final TestObserver<ProgressState> progressObserver = viewModelUnderTest.getConfirmingArrivalProgress().test();
+        progressObserver.assertValueCount(1).assertValueAt(0, ProgressState.IDLE);
+
+        viewModelUnderTest.confirmArrival();
+
+        progressObserver.assertValueCount(3)
+            .assertValueAt(1, ProgressState.LOADING)
+            .assertValueAt(2, ProgressState.SUCCEEDED);
+        Mockito.verify(vehicleInteractor).finishSteps(USER_ID, WAYPOINT.getTaskId(), WAYPOINT.getStepIds());
     }
 }

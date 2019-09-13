@@ -34,6 +34,7 @@ import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Step
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.CompleteStepRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.CreateVehicleRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.GetVehicleStateRequest;
+import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.RejectTripRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest.SetRouteLegs;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest.SetRouteLegs.LegDefinition;
@@ -154,6 +155,16 @@ public class DefaultDriverVehicleInteractor
                 ))
                     .ignoreElements()
             );
+    }
+
+    @Override
+    public Completable rejectTrip(final String vehicleId, final String tripId) {
+        return fetchAuthorizedStubAndExecute(stub -> stub.rejectTrip(RejectTripRequest.newBuilder()
+            .setVehicleId(vehicleId)
+            .setTripId(tripId)
+            .build())
+        )
+            .ignoreElements();
     }
 
     @Override

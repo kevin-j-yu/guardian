@@ -36,7 +36,7 @@ public class DefaultDrivingViewModelTest {
     );
 
     private DefaultDrivingViewModel viewModelUnderTest;
-    private FinishedDrivingListener drivingListener;
+    private DrivingListener drivingListener;
 
     @Test
     public void testCanObserveInitialStep() {
@@ -64,8 +64,8 @@ public class DefaultDrivingViewModelTest {
 
     @Test
     public void testConfirmArrivalCallsFinishDrivingListener() {
-        assertStateTransition(DrivingStep.CONFIRMING_ARRIVAL, () -> viewModelUnderTest.confirmArrival(), DrivingStep.CONFIRMING_ARRIVAL);
-        Mockito.verify(drivingListener).finishedDriving(MOCK_WAYPOINT);
+        assertStateTransition(DrivingStep.CONFIRMING_ARRIVAL, () -> viewModelUnderTest.didConfirmArrival(), DrivingStep.CONFIRMING_ARRIVAL);
+        Mockito.verify(drivingListener).finishedDriving();
     }
 
     @Test
@@ -88,7 +88,7 @@ public class DefaultDrivingViewModelTest {
     }
 
     private void setUpWithInitialStep(final DrivingStep step) {
-        drivingListener = Mockito.mock(FinishedDrivingListener.class);
+        drivingListener = Mockito.mock(DrivingListener.class);
         viewModelUnderTest = new DefaultDrivingViewModel(
             drivingListener,
             step,

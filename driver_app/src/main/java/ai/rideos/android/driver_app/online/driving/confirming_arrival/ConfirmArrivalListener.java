@@ -15,6 +15,8 @@
  */
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
-public interface ConfirmArrivalListener {
-    void confirmArrival();
+import ai.rideos.android.driver_app.online.OpenTripDetailsListener;
+
+public interface ConfirmArrivalListener extends OpenTripDetailsListener {
+    void didConfirmArrival();
 }

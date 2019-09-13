@@ -18,6 +18,8 @@
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value=""/>
+        <!-- Add your default fleet ID here -->
+        <meta-data android:name="default_fleet_id" android:value=""/>
         <!-- Set to true to show developer options in the side panel -->
         <meta-data android:name="enable_developer_options" android:value="false"/>
 

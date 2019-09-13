@@ -31,10 +31,10 @@ public class DefaultDrivingViewModel implements DrivingViewModel {
 
     private final StateMachine<DrivingViewState> stateMachine;
 
-    private final FinishedDrivingListener listener;
+    private final DrivingListener listener;
     private final DrivingStep initialStep;
 
-    public DefaultDrivingViewModel(final FinishedDrivingListener listener) {
+    public DefaultDrivingViewModel(final DrivingListener listener) {
         this(
             listener,
             DrivingStep.DRIVE_PENDING,
@@ -42,7 +42,7 @@ public class DefaultDrivingViewModel implements DrivingViewModel {
         );
     }
 
-    public DefaultDrivingViewModel(final FinishedDrivingListener listener,
+    public DefaultDrivingViewModel(final DrivingListener listener,
                                    final DrivingStep initialStep,
                                    final SchedulerProvider schedulerProvider) {
         this.listener = listener;
@@ -83,11 +83,11 @@ public class DefaultDrivingViewModel implements DrivingViewModel {
     }
 
     @Override
-    public void confirmArrival() {
+    public void didConfirmArrival() {
         stateMachine.transition(transitionIf(
             state -> state.getDrivingStep() == DrivingStep.CONFIRMING_ARRIVAL,
             state -> {
-                listener.finishedDriving(state.getWaypointToComplete());
+                listener.finishedDriving();
                 return state;
             }
         ));
@@ -101,5 +101,10 @@ public class DefaultDrivingViewModel implements DrivingViewModel {
     @Override
     public void destroy() {
         compositeDisposable.dispose();
+    }
+
+    @Override
+    public void openTripDetails() {
+        listener.openTripDetails();
     }
 }

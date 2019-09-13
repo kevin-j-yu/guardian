@@ -1,0 +1,30 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="139dp"
+    android:height="44dp"
+    android:viewportWidth="139"
+    android:viewportHeight="44">
+  <path
+      android:pathData="M139,22C139,9.85 129.15,0 117,0H22C9.85,0 0,9.85 0,22V22C0,34.15 9.85,44 22,44H117C129.15,44 139,34.15 139,22V22Z"
+      android:fillColor="#00D7DB"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M26.4,16.815C22.847,16.815 20.623,19.197 20.623,23.015C20.623,26.825 22.847,29.208 26.4,29.208C29.944,29.208 32.177,26.825 32.177,23.015C32.177,19.197 29.944,16.815 26.4,16.815ZM26.4,18.906C28.359,18.906 29.612,20.5 29.612,23.015C29.612,25.522 28.359,27.107 26.4,27.107C24.433,27.107 23.179,25.522 23.179,23.015C23.179,20.5 24.441,18.906 26.4,18.906ZM37.215,29V21.156H37.29L42.893,29H44.968V17.022H42.569V24.825H42.502L36.908,17.022H34.816V29H37.215ZM55.733,26.925H50.495V17.022H47.988V29H55.733V26.925ZM60.745,29V17.022H58.239V29H60.745ZM66.157,29V21.156H66.231L71.834,29H73.91V17.022H71.511V24.825H71.444L65.85,17.022H63.758V29H66.157ZM84.866,26.925H79.437V23.903H84.559V21.978H79.437V19.089H84.866V17.022H76.93V29H84.866V26.925Z"
+      android:fillColor="#ffffff"/>
+</vector>

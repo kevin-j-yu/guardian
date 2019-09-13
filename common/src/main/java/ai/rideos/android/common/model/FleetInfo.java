@@ -20,8 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class FleetInfo {
-    public static FleetInfo DEFAULT_FLEET = new FleetInfo("");
-
     private final String id;
     private final String displayName;
     @Nullable

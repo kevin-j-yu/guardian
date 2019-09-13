@@ -18,6 +18,7 @@ package ai.rideos.android.rider_app.pre_trip.confirm_location;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import io.reactivex.Observable;
 
 public interface ConfirmLocationViewModel extends MapStateProvider, ViewModel {
@@ -36,5 +37,5 @@ public interface ConfirmLocationViewModel extends MapStateProvider, ViewModel {
 
     Observable<String> getReverseGeocodedLocation();
 
-    Observable<ReverseGeocodingStatus> getReverseGeocodingStatus();
+    Observable<ProgressState> getReverseGeocodingProgress();
 }

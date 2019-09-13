@@ -23,6 +23,8 @@
         <meta-data
                 android:name="mapbox_token"
                 android:value=""/>
+        <!-- Add your default fleet ID here -->
+        <meta-data android:name="default_fleet_id" android:value=""/>
 
         <!-- https://issuetracker.google.com/issues/79478779 -->
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>

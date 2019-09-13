@@ -34,6 +34,8 @@ import ai.rideos.android.common.reactive.RetryBehaviors;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.model.DesiredAndAssignedLocation;
 import ai.rideos.android.rider_app.R;
 import androidx.annotation.Nullable;
@@ -57,7 +59,7 @@ public class DefaultConfirmLocationViewModel implements ConfirmLocationViewModel
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final BehaviorSubject<LatLng> currentLocationSubject = BehaviorSubject.create();
-    private final BehaviorSubject<ReverseGeocodingStatus> statusSubject = BehaviorSubject.create();
+    private final ProgressSubject geocodeProgress;
     // Used for creating initial state
     private final SingleSubject<LatLng> firstLocationSubject = SingleSubject.create();
     private final BehaviorSubject<NamedTaskLocation> reverseGeocodeSubject = BehaviorSubject.create();
@@ -121,6 +123,8 @@ public class DefaultConfirmLocationViewModel implements ConfirmLocationViewModel
         this.geocodeInteractor = geocodeInteractor;
         this.retryBehavior = retryBehavior;
 
+        geocodeProgress = new ProgressSubject(ProgressState.LOADING);
+
         currentLocationDisplayString = resourceProvider.getString(R.string.current_location_search_option);
 
         compositeDisposable.add(
@@ -130,14 +134,14 @@ public class DefaultConfirmLocationViewModel implements ConfirmLocationViewModel
                     distanceCalculator.getDistanceInMeters(oldLocation, newLocation) < LOCATION_TOLERANCE_METERS
                 )
                 .toFlowable(BackpressureStrategy.LATEST)
-                .doOnNext(next -> statusSubject.onNext(ReverseGeocodingStatus.IN_PROGRESS))
+                .doOnNext(next -> geocodeProgress.started())
                 .flatMap(
                     latLng -> reverseGeocode(latLng, initialLocation, distanceCalculator)
                         .doOnNext(result -> {
                             if (result.isFailure()) {
-                                statusSubject.onNext(ReverseGeocodingStatus.ERROR);
+                                geocodeProgress.failed();
                             } else {
-                                statusSubject.onNext(ReverseGeocodingStatus.IDLE);
+                                geocodeProgress.idle();
                             }
                         })
                         .map(result -> resolveFailedGeocode(result, latLng))
@@ -187,8 +191,8 @@ public class DefaultConfirmLocationViewModel implements ConfirmLocationViewModel
     }
 
     @Override
-    public Observable<ReverseGeocodingStatus> getReverseGeocodingStatus() {
-        return statusSubject.distinctUntilChanged();
+    public Observable<ProgressState> getReverseGeocodingProgress() {
+        return geocodeProgress.observeProgress();
     }
 
     @Override

@@ -25,7 +25,6 @@ import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
 import ai.rideos.android.interactors.DriverPlanInteractor;
-import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.OnlineViewState;
 import ai.rideos.android.model.OnlineViewState.DisplayType;
 import ai.rideos.android.model.TripResourceInfo;
@@ -33,7 +32,6 @@ import ai.rideos.android.model.VehiclePlan;
 import ai.rideos.android.model.VehiclePlan.Action;
 import ai.rideos.android.model.VehiclePlan.Action.ActionType;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Scheduler;
 import io.reactivex.internal.schedulers.TrampolineScheduler;
@@ -61,8 +59,6 @@ public class DefaultOnlineViewModelTest {
     );
 
     private DefaultOnlineViewModel viewModelUnderTest;
-    private GoOfflineListener listener;
-    private DriverVehicleInteractor vehicleInteractor;
     private DriverPlanInteractor planInteractor;
     private TestScheduler testScheduler;
 
@@ -77,17 +73,14 @@ public class DefaultOnlineViewModelTest {
         Mockito.when(deviceLocator.observeCurrentLocation(anyInt()))
             .thenReturn(locationSubject.observeOn(TrampolineScheduler.instance()));
 
-        vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
-
         planInteractor = Mockito.mock(DriverPlanInteractor.class);
 
-        listener = Mockito.mock(GoOfflineListener.class);
+        final GoOfflineListener listener = Mockito.mock(GoOfflineListener.class);
 
         testScheduler = new TestScheduler();
 
         viewModelUnderTest = new DefaultOnlineViewModel(
             listener,
-            vehicleInteractor,
             planInteractor,
             ExternalVehicleRouteSynchronizer.NOOP,
             deviceLocator,
@@ -170,21 +163,8 @@ public class DefaultOnlineViewModelTest {
     }
 
     @Test
-    public void testCompleteWaypointCallsVehicleInteractor() {
-        Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
-            .thenReturn(Observable.just(new VehiclePlan(Collections.singletonList(MOCK_WAYPOINT))));
-        Mockito.when(vehicleInteractor.finishSteps(VEHICLE_ID, MOCK_WAYPOINT.getTaskId(), MOCK_WAYPOINT.getStepIds()))
-            .thenReturn(Completable.complete());
-        testScheduler.advanceTimeBy(POLL_INTERVAL, TimeUnit.MILLISECONDS);
-        viewModelUnderTest.finishedDriving(MOCK_WAYPOINT);
-        Mockito.verify(vehicleInteractor).finishSteps(VEHICLE_ID, MOCK_WAYPOINT.getTaskId(), MOCK_WAYPOINT.getStepIds());
-    }
-
-    @Test
     public void testCompleteWaypointTriggersPlanUpdate() {
         final TestObserver<OnlineViewState> testObserver = viewModelUnderTest.getOnlineViewState().test();
-        Mockito.when(vehicleInteractor.finishSteps(VEHICLE_ID, MOCK_WAYPOINT.getTaskId(), MOCK_WAYPOINT.getStepIds()))
-            .thenReturn(Completable.complete());
 
         Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
             .thenReturn(Observable.just(new VehiclePlan(Collections.emptyList())))
@@ -193,7 +173,7 @@ public class DefaultOnlineViewModelTest {
         testObserver.assertValueCount(1); // idle plan didn't change
 
         testScheduler.advanceTimeBy(POLL_INTERVAL, TimeUnit.MILLISECONDS);
-        viewModelUnderTest.finishedDriving(MOCK_WAYPOINT);
+        viewModelUnderTest.finishedDriving();
         testObserver.assertValueCount(2);
     }
 
@@ -226,6 +206,31 @@ public class DefaultOnlineViewModelTest {
 
         testScheduler.advanceTimeBy(POLL_INTERVAL, TimeUnit.MILLISECONDS);
         testObserver.assertValueCount(2);
+    }
+
+    @Test
+    public void testOpeningTripDetailsTransitionsToTripDetails() {
+        final VehiclePlan vehiclePlan = new VehiclePlan(Collections.emptyList());
+        Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
+            .thenReturn(Observable.just(vehiclePlan));
+
+        viewModelUnderTest.openTripDetails();
+        viewModelUnderTest.getOnlineViewState().test()
+            .assertValueAt(0, OnlineViewState.tripDetails(vehiclePlan));
+    }
+
+    @Test
+    public void testClosingTripDetailsTransitionsBackToVehicleState() {
+        final VehiclePlan vehiclePlan = new VehiclePlan(Collections.emptyList());
+        Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
+            .thenReturn(Observable.just(vehiclePlan));
+
+        viewModelUnderTest.openTripDetails();
+        final TestObserver<OnlineViewState> testObserver = viewModelUnderTest.getOnlineViewState().test();
+        testObserver.assertValueAt(0, OnlineViewState.tripDetails(vehiclePlan));
+
+        viewModelUnderTest.closeTripDetails();
+        testObserver.assertValueAt(1, OnlineViewState.idle());
     }
 
     // Only use the test scheduler for advancing the timer on the io thread

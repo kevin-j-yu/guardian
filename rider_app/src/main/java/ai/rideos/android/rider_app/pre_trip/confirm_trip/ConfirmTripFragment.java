@@ -17,11 +17,9 @@ package ai.rideos.android.rider_app.pre_trip.confirm_trip;
 
 import ai.rideos.android.common.app.MetadataReader;
 import ai.rideos.android.common.app.map.MapRelay;
+import ai.rideos.android.common.app.progress.ProgressConnector;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
-import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.grpc.ChannelProvider;
-import ai.rideos.android.common.interactors.RideOsRouteInteractor;
 import ai.rideos.android.common.model.NamedTaskLocation;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.common.view.layout.LoadableDividerView;
@@ -29,14 +27,13 @@ import ai.rideos.android.common.view.resources.AndroidResourceProvider;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.dependency.RiderDependencyRegistry;
 import ai.rideos.android.rider_app.pre_trip.confirm_trip.ConfirmTripFragment.ConfirmTripArgs;
-import ai.rideos.android.rider_app.pre_trip.confirm_trip.ConfirmTripViewModel.FetchingRouteStatus;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import java.io.Serializable;
@@ -56,10 +53,6 @@ public class ConfirmTripFragment extends FragmentViewController<ConfirmTripArgs,
     private CompositeDisposable compositeDisposable;
     private ConfirmTripViewModel viewModel;
     private ConfirmSeatsDialogPresenter confirmSeatsVC;
-
-    private LoadableDividerView loadableDivider;
-    private Button confirmButton;
-    private TextView loadingText;
 
     @Override
     public ControllerTypes<ConfirmTripArgs, ConfirmTripListener> getTypes() {
@@ -102,7 +95,7 @@ public class ConfirmTripFragment extends FragmentViewController<ConfirmTripArgs,
             .inflate(R.layout.confirm_seats_dialog, null);
         confirmSeatsVC.attach(dialogView);
 
-        confirmButton = view.findViewById(R.id.request_ride_button);
+        final Button confirmButton = view.findViewById(R.id.request_ride_button);
         confirmButton.setOnClickListener(click -> {
             if (viewModel.isSeatSelectionDisabled()) {
                 viewModel.confirmTripWithoutSeats();
@@ -118,13 +111,19 @@ public class ConfirmTripFragment extends FragmentViewController<ConfirmTripArgs,
             );
         });
 
-        loadingText = view.findViewById(R.id.loading_text);
-        loadableDivider = view.findViewById(R.id.loadable_divider);
+        final TextView loadingText = view.findViewById(R.id.loading_text);
+        final LoadableDividerView loadableDivider = view.findViewById(R.id.loadable_divider);
 
         viewModel.setOriginAndDestination(
             getArgs().pickup.getLocation().getLatLng(),
             getArgs().dropOff.getLocation().getLatLng()
         );
+
+        final ProgressConnector progressConnector = ProgressConnector.newBuilder()
+            .showLoadableDividerWhenLoading(loadableDivider)
+            .disableButtonWhenLoading(confirmButton)
+            .showTextWhenLoading(loadingText, R.string.optimizing_route_text)
+            .build();
 
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.addAll(
@@ -138,29 +137,10 @@ public class ConfirmTripFragment extends FragmentViewController<ConfirmTripArgs,
                     etaText.setText(distanceAndTime.getTime());
                     distanceText.setText(distanceAndTime.getDistance());
                 }),
-            viewModel.getFetchingRouteStatus()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::displayStatus)
+            progressConnector.connect(
+                viewModel.getFetchingRouteProgress().observeOn(AndroidSchedulers.mainThread())
+            )
         );
-    }
-
-    private void displayStatus(final FetchingRouteStatus status) {
-        switch (status) {
-            case IN_PROGRESS:
-                loadingText.setVisibility(View.VISIBLE);
-                loadingText.setText(R.string.optimizing_route_text);
-                loadableDivider.startLoading();
-                confirmButton.setEnabled(false);
-                break;
-            case IDLE:
-            case ERROR:
-                // TODO improve error display
-                // In the event of an error showing the route, we should still allow the user to request a ride
-                loadingText.setVisibility(View.GONE);
-                loadableDivider.stopLoading();
-                confirmButton.setEnabled(true);
-                break;
-        }
     }
 
     @Override

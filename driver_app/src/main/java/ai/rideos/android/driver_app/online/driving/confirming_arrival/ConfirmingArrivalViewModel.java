@@ -17,8 +17,13 @@ package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import io.reactivex.Observable;
 
 public interface ConfirmingArrivalViewModel extends ViewModel, MapStateProvider {
     Observable<String> getArrivalDetailText();
+
+    void confirmArrival();
+
+    Observable<ProgressState> getConfirmingArrivalProgress();
 }

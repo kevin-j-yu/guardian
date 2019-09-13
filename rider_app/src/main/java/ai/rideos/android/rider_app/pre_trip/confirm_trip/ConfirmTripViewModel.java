@@ -18,6 +18,7 @@ package ai.rideos.android.rider_app.pre_trip.confirm_trip;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.model.RouteTimeDistanceDisplay;
 import androidx.core.util.Pair;
 import io.reactivex.Observable;
@@ -43,7 +44,7 @@ public interface ConfirmTripViewModel extends MapStateProvider, ViewModel {
 
     Observable<RouteTimeDistanceDisplay> getRouteInformation();
 
-    Observable<FetchingRouteStatus> getFetchingRouteStatus();
+    Observable<ProgressState> getFetchingRouteProgress();
 
     Single<Pair<Integer, Integer>> getPassengerCountBounds();
 

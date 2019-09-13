@@ -35,7 +35,7 @@ public class DrivingCoordinator implements Coordinator<DrivingInput> {
     private final DrivingViewModel drivingViewModel;
 
     public DrivingCoordinator(final NavigationController navController,
-                              final FinishedDrivingListener drivingListener) {
+                              final DrivingListener drivingListener) {
         this.navController = navController;
         this.drivingViewModel = new DefaultDrivingViewModel(drivingListener);
     }
@@ -73,7 +73,7 @@ public class DrivingCoordinator implements Coordinator<DrivingInput> {
                             new ConfirmingArrivalArgs(
                                 input.getArrivalTitleResourceId(),
                                 input.getDrawableDestinationPinAttr(),
-                                destination
+                                state.getWaypointToComplete()
                             ),
                             drivingViewModel
                         );

@@ -16,7 +16,7 @@
 
 -->
 <resources>
-    <string name="app_name">Common</string>
+    <string name="final_app_name">Common</string>
 
     <!-- Should be filled in by top-level application -->
     <string name="com_auth0_client_id"></string>

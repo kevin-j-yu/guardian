@@ -272,9 +272,19 @@ public class DefaultRiderTripStateInteractor
     }
 
     private static VehicleInfo getVehicleInfoFromTrip(final RideHailCommons.VehicleInfo assignedVehicle) {
-        final String contactUrl = assignedVehicle.getDriverInfo().hasContactInfo()
-            ? assignedVehicle.getDriverInfo().getContactInfo().getContactUrl()
-            : "";
+        final String contactUrl;
+        if (assignedVehicle.getDriverInfo().hasContactInfo()) {
+            if (!assignedVehicle.getDriverInfo().getContactInfo().getContactUrl().isEmpty()) {
+                contactUrl = assignedVehicle.getDriverInfo().getContactInfo().getContactUrl();
+            } else if (!assignedVehicle.getDriverInfo().getContactInfo().getPhoneNumber().isEmpty()) {
+                contactUrl = "tel://"
+                        + assignedVehicle.getDriverInfo().getContactInfo().getPhoneNumber();
+            } else {
+                contactUrl = "";
+            }
+        } else {
+            contactUrl = "";
+        }
         return new VehicleInfo(assignedVehicle.getLicensePlate(), new ContactInfo(contactUrl));
     }
 

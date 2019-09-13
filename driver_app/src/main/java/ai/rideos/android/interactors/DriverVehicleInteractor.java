@@ -34,6 +34,8 @@ public interface DriverVehicleInteractor {
 
     Completable finishSteps(final String vehicleId, final String taskId, final List<String> stepIds);
 
+    Completable rejectTrip(final String vehicleId, final String tripId);
+
     Completable updateVehicleLocation(final String vehicleId, final LocationAndHeading locationAndHeading);
 
     Completable updateVehicleRoute(final String vehicleId, final List<VehicleDisplayRouteLeg> updatedLegs);

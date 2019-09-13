@@ -18,12 +18,12 @@ package ai.rideos.android.driver_app.online.driving;
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.driver_app.navigation.NavigationDoneListener;
 import ai.rideos.android.driver_app.online.driving.confirming_arrival.ConfirmArrivalListener;
-import ai.rideos.android.driver_app.online.driving.drive_pending.StartNavigationListener;
+import ai.rideos.android.driver_app.online.driving.drive_pending.DrivePendingListener;
 import ai.rideos.android.model.DrivingViewState;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
 import io.reactivex.Observable;
 
-public interface DrivingViewModel extends ViewModel, StartNavigationListener, NavigationDoneListener, ConfirmArrivalListener {
+public interface DrivingViewModel extends ViewModel, DrivePendingListener, NavigationDoneListener, ConfirmArrivalListener {
     void initialize(final Waypoint waypointToComplete);
 
     Observable<DrivingViewState> getDrivingViewState();

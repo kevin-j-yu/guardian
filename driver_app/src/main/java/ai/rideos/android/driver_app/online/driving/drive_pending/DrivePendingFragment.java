@@ -30,6 +30,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -38,7 +40,7 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import java.io.Serializable;
 
-public class DrivePendingFragment extends FragmentViewController<DrivePendingArgs, StartNavigationListener> {
+public class DrivePendingFragment extends FragmentViewController<DrivePendingArgs, DrivePendingListener> {
     public static class DrivePendingArgs implements Serializable {
         private final int titleTextResourceId;
         private final int drawableDestinationPinAttr;
@@ -57,8 +59,8 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
     private DrivePendingViewModel drivingViewModel;
 
     @Override
-    public ControllerTypes<DrivePendingArgs, StartNavigationListener> getTypes() {
-        return new ControllerTypes<>(DrivePendingArgs.class, StartNavigationListener.class);
+    public ControllerTypes<DrivePendingArgs, DrivePendingListener> getTypes() {
+        return new ControllerTypes<>(DrivePendingArgs.class, DrivePendingListener.class);
     }
 
     @Override
@@ -77,12 +79,9 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.action_detail);
-        final ActionDetailView drivingActionView = view.findViewById(R.id.action_detail_container);
-
-        drivingActionView.getTitleView().setText(getArgs().titleTextResourceId);
-        drivingActionView.getActionButton().setText(R.string.start_navigation_button_text);
-        drivingActionView.getActionButton().setOnClickListener(click -> getListener().startNavigation());
+        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.drive_pending);
+        final TextView titleText = view.findViewById(R.id.drive_pending_title);
+        titleText.setText(getArgs().titleTextResourceId);
         return view;
 
     }
@@ -90,12 +89,21 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
     @Override
     public void onStart() {
         super.onStart();
-        final ActionDetailView drivingActionView = getView().findViewById(R.id.action_detail_container);
+        final View view = getView();
+
+        final Button startNavButton = view.findViewById(R.id.start_nav_button);
+        startNavButton.setOnClickListener(click -> getListener().startNavigation());
+
+        final View expandDetailsButton = view.findViewById(R.id.expand_trip_details_button);
+        expandDetailsButton.setOnClickListener(click -> getListener().openTripDetails());
+
+        final TextView detailText = view.findViewById(R.id.drive_pending_detail);
+
         final Disposable mapSubscription = MapRelay.get().connectToProvider(drivingViewModel);
 
         final Disposable detailSubscription = drivingViewModel.getRouteDetailText()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(detail -> drivingActionView.getDetailView().setText(detail));
+            .subscribe(detailText::setText);
 
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.addAll(mapSubscription, detailSubscription);

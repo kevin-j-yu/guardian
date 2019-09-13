@@ -139,7 +139,7 @@ public class DefaultDeveloperOptionsViewModelTest {
         final String expectedDisplayName = "default-fleet";
         Mockito.when(resourceProvider.getString(R.string.default_fleet_id_option_display))
             .thenReturn(expectedDisplayName);
-        Mockito.when(resolvedFleet.observeFleetInfo()).thenReturn(Observable.just(FleetInfo.DEFAULT_FLEET));
+        Mockito.when(resolvedFleet.observeFleetInfo()).thenReturn(Observable.just(new FleetInfo("")));
         viewModelUnderTest.getResolvedFleetId().test()
             .assertValueAt(0, expectedDisplayName);
     }

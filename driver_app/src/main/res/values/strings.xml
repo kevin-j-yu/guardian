@@ -46,6 +46,22 @@
     <string name="go_offline_failure_message">Unable to go offline at this time. Please, try again.</string>
     <string name="waiting_for_pickup_title_format">Picking up %1$s</string>
     <string name="waiting_for_pickup_button">Confirm Pickup</string>
+    <string name="waiting_for_pickup_failure_message">Unable to confirm pickup. Please try again.</string>
+    <string name="confirm_arrival_failure_message">Unable to confirm arrival. Please try again.</string>
+    <string name="trip_detail_drop_off_title">Drop-off</string>
+    <string name="trip_detail_pickup_title">Pickup</string>
+    <string name="trip_detail_passenger_title">Passenger</string>
+    <string name="trip_detail_reject_alert_title">Decline Ride Request</string>
+    <string name="trip_detail_reject_alert_description">Are you sure? This will cause a delay in the passenger pickup
+        time.
+    </string>
+    <string name="trip_detail_reject_alert_positive_button">Yes, cancel</string>
+    <string name="trip_detail_end_alert_title">End Trip</string>
+    <string name="trip_detail_end_alert_description">Are you sure? This will end the current trip.</string>
+    <string name="trip_detail_end_alert_positive_button">Yes, end trip</string>
+    <string name="trip_detail_alert_negative_button">No</string>
+    <string name="trip_detail_reject_ride_action_button">Decline Ride Request</string>
+    <string name="trip_detail_end_trip_action_button">End Trip</string>
 
     <plurals name="waiting_for_passengers_title_text">
         <item quantity="one">Pickup passenger</item>

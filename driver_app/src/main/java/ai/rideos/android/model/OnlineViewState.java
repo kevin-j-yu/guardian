@@ -23,15 +23,40 @@ public class OnlineViewState {
         IDLE,
         DRIVING_TO_PICKUP,
         WAITING_FOR_PASSENGER,
-        DRIVING_TO_DROP_OFF
+        DRIVING_TO_DROP_OFF,
+        TRIP_DETAILS
     }
 
     private final DisplayType displayType;
     private final Waypoint currentWaypoint;
+    private final VehiclePlan vehiclePlan;
 
-    public OnlineViewState(final DisplayType displayType, final Waypoint currentWaypoint) {
+    public static OnlineViewState idle() {
+        return new OnlineViewState(DisplayType.IDLE, null, null);
+    }
+
+    public static OnlineViewState drivingToPickup(final Waypoint currentWaypoint) {
+        return new OnlineViewState(DisplayType.DRIVING_TO_PICKUP, currentWaypoint, null);
+    }
+
+    public static OnlineViewState waitingForPassenger(final Waypoint currentWaypoint) {
+        return new OnlineViewState(DisplayType.WAITING_FOR_PASSENGER, currentWaypoint, null);
+    }
+
+    public static OnlineViewState drivingToDropOff(final Waypoint currentWaypoint) {
+        return new OnlineViewState(DisplayType.DRIVING_TO_DROP_OFF, currentWaypoint, null);
+    }
+
+    public static OnlineViewState tripDetails(final VehiclePlan vehiclePlan) {
+        return new OnlineViewState(DisplayType.TRIP_DETAILS, null, vehiclePlan);
+    }
+
+    private OnlineViewState(final DisplayType displayType,
+                            final Waypoint currentWaypoint,
+                            final VehiclePlan vehiclePlan) {
         this.displayType = displayType;
         this.currentWaypoint = currentWaypoint;
+        this.vehiclePlan = vehiclePlan;
     }
 
     public DisplayType getDisplayType() {
@@ -40,6 +65,10 @@ public class OnlineViewState {
 
     public Waypoint getCurrentWaypoint() {
         return currentWaypoint;
+    }
+
+    public VehiclePlan getVehiclePlan() {
+        return vehiclePlan;
     }
 
     @Override
@@ -52,6 +81,7 @@ public class OnlineViewState {
         }
         final OnlineViewState otherModel = (OnlineViewState) other;
         return displayType == otherModel.displayType
-            && Objects.equals(currentWaypoint, otherModel.currentWaypoint);
+            && Objects.equals(currentWaypoint, otherModel.currentWaypoint)
+            && Objects.equals(vehiclePlan, otherModel.vehiclePlan);
     }
 }

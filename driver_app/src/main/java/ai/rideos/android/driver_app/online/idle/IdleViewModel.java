@@ -16,17 +16,11 @@
 package ai.rideos.android.driver_app.online.idle;
 
 import ai.rideos.android.common.viewmodel.ViewModel;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import io.reactivex.Observable;
 
 public interface IdleViewModel extends ViewModel {
-    enum IdleViewState {
-        ONLINE,
-        GOING_OFFLINE,
-        OFFLINE,
-        FAILED_TO_GO_OFFLINE
-    }
-
-    Observable<IdleViewState> getIdleViewState();
+    Observable<ProgressState> getGoingOfflineProgress();
 
     void goOffline();
 }

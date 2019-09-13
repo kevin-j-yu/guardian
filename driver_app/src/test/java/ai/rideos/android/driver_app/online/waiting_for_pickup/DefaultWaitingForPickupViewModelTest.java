@@ -17,6 +17,7 @@ package ai.rideos.android.driver_app.online.waiting_for_pickup;
 
 import static junit.framework.TestCase.assertEquals;
 
+import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
@@ -25,10 +26,18 @@ import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerP
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.driver_app.R;
+import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.TripResourceInfo;
+import ai.rideos.android.model.VehiclePlan.Action;
+import ai.rideos.android.model.VehiclePlan.Action.ActionType;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.observers.TestObserver;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -36,10 +45,13 @@ import org.mockito.Mockito;
 public class DefaultWaitingForPickupViewModelTest {
     private static final TripResourceInfo TRIP_RESOURCE = new TripResourceInfo(3, "Robby Rider");
     private static final LatLng PICKUP_LOCATION = new LatLng(1, 1);
+    private static final String USER_ID = "user-1";
+
     private static final LocationAndHeading CURRENT_LOCATION = new LocationAndHeading(new LatLng(2, 2), 1);
     private static final int DRAWABLE_PIN = 1;
 
     private DefaultWaitingForPickupViewModel viewModelUnderTest;
+    private DriverVehicleInteractor vehicleInteractor;
     private ResourceProvider resourceProvider;
 
     @Before
@@ -55,9 +67,18 @@ public class DefaultWaitingForPickupViewModelTest {
         Mockito.when(deviceLocator.observeCurrentLocation(Mockito.anyInt()))
             .thenReturn(Observable.just(CURRENT_LOCATION));
 
+        vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
+        final User user = Mockito.mock(User.class);
+        Mockito.when(user.getId()).thenReturn(USER_ID);
+
         viewModelUnderTest = new DefaultWaitingForPickupViewModel(
-            tripResourceInfo,
-            PICKUP_LOCATION,
+            vehicleInteractor,
+            user,
+            new Waypoint(
+                "trip-1",
+                Collections.singletonList("step-1"),
+                new Action(PICKUP_LOCATION, ActionType.LOAD_RESOURCE, tripResourceInfo)
+            ),
             resourceProvider,
             deviceLocator,
             new TrampolineSchedulerProvider()
@@ -99,5 +120,20 @@ public class DefaultWaitingForPickupViewModelTest {
             .assertValueAt(0, map -> map.get(Markers.PICKUP_MARKER_KEY).getPosition().equals(PICKUP_LOCATION)
                 && map.get(Markers.VEHICLE_KEY).getPosition().equals(CURRENT_LOCATION.getLatLng())
             );
+    }
+
+    @Test
+    public void testConfirmingPickupUpdatesProgress() {
+        Mockito.when(vehicleInteractor.finishSteps(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
+            .thenReturn(Completable.complete());
+        final TestObserver<ProgressState> progressObserver = viewModelUnderTest.getConfirmingPickupProgress().test();
+        progressObserver.assertValueCount(1).assertValueAt(0, ProgressState.IDLE);
+
+        viewModelUnderTest.confirmPickup();
+
+        progressObserver.assertValueCount(3)
+            .assertValueAt(1, ProgressState.LOADING)
+            .assertValueAt(2, ProgressState.SUCCEEDED);
+        Mockito.verify(vehicleInteractor).finishSteps(USER_ID, "trip-1", Collections.singletonList("step-1"));
     }
 }

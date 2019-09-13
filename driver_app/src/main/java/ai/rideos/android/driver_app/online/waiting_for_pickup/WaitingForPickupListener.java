@@ -15,8 +15,8 @@
  */
 package ai.rideos.android.driver_app.online.waiting_for_pickup;
 
-import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.android.driver_app.online.OpenTripDetailsListener;
 
-public interface WaitingForPickupListener {
-    void pickedUpPassenger(final Waypoint completedWaypoint);
+public interface WaitingForPickupListener extends OpenTripDetailsListener {
+    void pickedUpPassenger();
 }

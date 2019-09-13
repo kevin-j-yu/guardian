@@ -28,8 +28,8 @@ import ai.rideos.android.common.reactive.SchedulerProviders.TestSchedulerProvide
 import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
 import ai.rideos.android.common.reactive.TestUtils;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.rider_app.R;
-import ai.rideos.android.rider_app.pre_trip.confirm_location.ConfirmLocationViewModel.ReverseGeocodingStatus;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
@@ -253,15 +253,15 @@ public class DefaultConfirmLocationViewModelTest {
                 .just(Result.success(GEOCODED_LOCATION))
                 .delay(geocodeDelayMs, TimeUnit.MILLISECONDS, testScheduler)
             );
-        final TestObserver<ReverseGeocodingStatus> statusObserver = viewModelUnderTest.getReverseGeocodingStatus().test();
+        final TestObserver<ProgressState> progressObserver = viewModelUnderTest.getReverseGeocodingProgress().test();
 
         viewModelUnderTest.onCameraMoved(NEW_LAT_LNG);
         testScheduler.triggerActions();
-        statusObserver.assertValueCount(3);
-        statusObserver.assertValueAt(2, ReverseGeocodingStatus.IN_PROGRESS);
+        progressObserver.assertValueCount(3);
+        progressObserver.assertValueAt(2, ProgressState.LOADING);
 
         testScheduler.advanceTimeBy(geocodeDelayMs, TimeUnit.MILLISECONDS);
-        statusObserver.assertValueAt(3, ReverseGeocodingStatus.IDLE);
+        progressObserver.assertValueAt(3, ProgressState.IDLE);
     }
 
     @Test
@@ -269,13 +269,13 @@ public class DefaultConfirmLocationViewModelTest {
         // Pretend it takes a long time to get the result
         Mockito.when(geocodeInteractor.getBestReverseGeocodeResult(Mockito.eq(NEW_LAT_LNG)))
             .thenReturn(Observable.error(new IOException()));
-        final TestObserver<ReverseGeocodingStatus> statusObserver = viewModelUnderTest.getReverseGeocodingStatus().test();
+        final TestObserver<ProgressState> progressObserver = viewModelUnderTest.getReverseGeocodingProgress().test();
 
         viewModelUnderTest.onCameraMoved(NEW_LAT_LNG);
         testScheduler.triggerActions();
-        statusObserver.assertValueCount(4)
-            .assertValueAt(2, ReverseGeocodingStatus.IN_PROGRESS)
-            .assertValueAt(3, ReverseGeocodingStatus.ERROR);
+        progressObserver.assertValueCount(4)
+            .assertValueAt(2, ProgressState.LOADING)
+            .assertValueAt(3, ProgressState.FAILED);
     }
 
     @Test

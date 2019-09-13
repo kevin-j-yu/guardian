@@ -16,12 +16,14 @@
 package ai.rideos.android.driver_app.online;
 
 import ai.rideos.android.common.viewmodel.ViewModel;
-import ai.rideos.android.driver_app.online.driving.FinishedDrivingListener;
+import ai.rideos.android.driver_app.online.driving.DrivingListener;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
+import ai.rideos.android.driver_app.online.trip_details.TripDetailsListener;
 import ai.rideos.android.driver_app.online.waiting_for_pickup.WaitingForPickupListener;
 import ai.rideos.android.model.OnlineViewState;
 import io.reactivex.Observable;
 
-public interface OnlineViewModel extends ViewModel, GoOfflineListener, FinishedDrivingListener, WaitingForPickupListener {
+public interface OnlineViewModel extends ViewModel, GoOfflineListener, DrivingListener, WaitingForPickupListener,
+    TripDetailsListener {
     Observable<OnlineViewState> getOnlineViewState();
 }

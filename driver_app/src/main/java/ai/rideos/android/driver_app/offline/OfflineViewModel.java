@@ -16,6 +16,7 @@
 package ai.rideos.android.driver_app.offline;
 
 import ai.rideos.android.common.viewmodel.ViewModel;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import io.reactivex.Observable;
 
 public interface OfflineViewModel extends ViewModel {
@@ -26,7 +27,7 @@ public interface OfflineViewModel extends ViewModel {
         FAILED_TO_GO_ONLINE
     }
 
-    Observable<OfflineViewState> getOfflineViewState();
+    Observable<ProgressState> getGoingOnlineProgress();
 
     void goOnline();
 }

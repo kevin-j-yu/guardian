@@ -1,0 +1,31 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp"
+    android:height="44dp"
+    android:viewportWidth="44"
+    android:viewportHeight="44">
+  <path
+      android:pathData="M4.25,22C4.25,31.8031 12.1969,39.75 22,39.75C31.8031,39.75 39.75,31.8031 39.75,22C39.75,12.1969 31.8031,4.25 22,4.25C12.1969,4.25 4.25,12.1969 4.25,22Z"
+      android:strokeWidth="0.5"
+      android:fillColor="#ffffff"
+      android:strokeColor="#E5E5E5"/>
+  <path
+      android:pathData="M29.6889,14.1222C29.4667,13.4667 28.8444,13 28.1111,13H15.8889C15.1556,13 14.5444,13.4667 14.3111,14.1222L12,20.7778V29.6667C12,30.2778 12.5,30.7778 13.1111,30.7778H14.2222C14.8333,30.7778 15.3333,30.2778 15.3333,29.6667V28.5556H28.6667V29.6667C28.6667,30.2778 29.1667,30.7778 29.7778,30.7778H30.8889C31.5,30.7778 32,30.2778 32,29.6667V20.7778L29.6889,14.1222ZM15.8889,25.2222C14.9667,25.2222 14.2222,24.4778 14.2222,23.5556C14.2222,22.6333 14.9667,21.8889 15.8889,21.8889C16.8111,21.8889 17.5556,22.6333 17.5556,23.5556C17.5556,24.4778 16.8111,25.2222 15.8889,25.2222ZM28.1111,25.2222C27.1889,25.2222 26.4444,24.4778 26.4444,23.5556C26.4444,22.6333 27.1889,21.8889 28.1111,21.8889C29.0333,21.8889 29.7778,22.6333 29.7778,23.5556C29.7778,24.4778 29.0333,25.2222 28.1111,25.2222ZM14.2222,19.6667L15.8889,14.6667H28.1111L29.7778,19.6667H14.2222Z"
+      android:fillColor="#95A6C0"/>
+</vector>

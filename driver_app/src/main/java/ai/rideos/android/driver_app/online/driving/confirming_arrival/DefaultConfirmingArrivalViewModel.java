@@ -15,6 +15,7 @@
  */
 package ai.rideos.android.driver_app.online.driving.confirming_arrival;
 
+import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
 import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.model.LatLng;
@@ -32,6 +33,10 @@ import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProv
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
+import ai.rideos.android.interactors.DriverVehicleInteractor;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -48,20 +53,28 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final GeocodeInteractor geocodeInteractor;
+    private final DriverVehicleInteractor vehicleInteractor;
+    private final User user;
     private final SchedulerProvider schedulerProvider;
+    private final Waypoint waypoint;
     private final LatLng destination;
     private final int drawableDestinationPin;
     private final ResourceProvider resourceProvider;
     private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
+    private final ProgressSubject progressSubject = new ProgressSubject();
 
     public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
-                                             final LatLng destination,
+                                             final DriverVehicleInteractor vehicleInteractor,
+                                             final User user,
+                                             final Waypoint waypoint,
                                              final int drawableDestinationPin,
                                              final DeviceLocator deviceLocator,
                                              final ResourceProvider resourceProvider) {
         this(
             geocodeInteractor,
-            destination,
+            vehicleInteractor,
+            user,
+            waypoint,
             drawableDestinationPin,
             deviceLocator,
             resourceProvider,
@@ -70,14 +83,19 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     }
 
     public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
-                                             final LatLng destination,
+                                             final DriverVehicleInteractor vehicleInteractor,
+                                             final User user,
+                                             final Waypoint waypoint,
                                              final int drawableDestinationPin,
                                              final DeviceLocator deviceLocator,
                                              final ResourceProvider resourceProvider,
                                              final SchedulerProvider schedulerProvider) {
         this.geocodeInteractor = geocodeInteractor;
+        this.vehicleInteractor = vehicleInteractor;
+        this.user = user;
         this.schedulerProvider = schedulerProvider;
-        this.destination = destination;
+        this.waypoint = waypoint;
+        destination = waypoint.getAction().getDestination();
         this.drawableDestinationPin = drawableDestinationPin;
         this.resourceProvider = resourceProvider;
 
@@ -99,6 +117,24 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
                 }
                 return result.get().getDisplayName();
             });
+    }
+
+    @Override
+    public void confirmArrival() {
+        compositeDisposable.add(
+            progressSubject.followAsyncOperation(
+                vehicleInteractor.finishSteps(
+                    user.getId(),
+                    waypoint.getTaskId(),
+                    waypoint.getStepIds()
+                )
+            )
+        );
+    }
+
+    @Override
+    public Observable<ProgressState> getConfirmingArrivalProgress() {
+        return progressSubject.observeProgress();
     }
 
     @Override

@@ -24,9 +24,7 @@ import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
 import ai.rideos.android.interactors.DriverPlanInteractor;
-import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.OnlineViewState;
-import ai.rideos.android.model.OnlineViewState.DisplayType;
 import ai.rideos.android.model.VehiclePlan;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
 import androidx.core.util.Pair;
@@ -50,24 +48,22 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     // send any value to this subject to initiate syncing the vehicle state
     private final PublishSubject<Boolean> forceSyncSubject = PublishSubject.create();
     private final BehaviorSubject<VehiclePlan> currentPlan;
+    private final BehaviorSubject<Boolean> shouldShowTripDetailsSubject = BehaviorSubject.createDefault(false);
     private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
 
     private final GoOfflineListener listener;
-    private final DriverVehicleInteractor vehicleInteractor;
     private final DriverPlanInteractor planInteractor;
     private final User user;
     private final SchedulerProvider schedulerProvider;
     private final int retryCount;
 
     public DefaultOnlineViewModel(final GoOfflineListener listener,
-                                  final DriverVehicleInteractor vehicleInteractor,
                                   final DriverPlanInteractor planInteractor,
                                   final ExternalVehicleRouteSynchronizer vehicleRouteSynchronizer,
                                   final DeviceLocator deviceLocator,
                                   final User user) {
         this(
             listener,
-            vehicleInteractor,
             planInteractor,
             vehicleRouteSynchronizer,
             deviceLocator,
@@ -79,7 +75,6 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     }
 
     public DefaultOnlineViewModel(final GoOfflineListener listener,
-                                  final DriverVehicleInteractor vehicleInteractor,
                                   final DriverPlanInteractor planInteractor,
                                   final ExternalVehicleRouteSynchronizer vehicleRouteSynchronizer,
                                   final DeviceLocator deviceLocator,
@@ -88,7 +83,6 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
                                   final int pollIntervalMillis,
                                   final int retryCount) {
         this.listener = listener;
-        this.vehicleInteractor = vehicleInteractor;
         this.planInteractor = planInteractor;
         this.user = user;
         this.schedulerProvider = schedulerProvider;
@@ -110,51 +104,40 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     }
 
     @Override
-    public void pickedUpPassenger(final Waypoint waypointToComplete) {
-        completeWaypoint(waypointToComplete);
+    public void pickedUpPassenger() {
+        forceSyncSubject.onNext(true);
     }
 
     @Override
-    public void finishedDriving(final Waypoint waypointToComplete) {
-        completeWaypoint(waypointToComplete);
-    }
-
-    private void completeWaypoint(final Waypoint waypointToComplete) {
-        final VehiclePlan plan = currentPlan.getValue();
-        if (plan == null || plan.getWaypoints().size() == 0) {
-            return;
-        }
-        compositeDisposable.add(
-            vehicleInteractor.finishSteps(
-                user.getId(),
-                waypointToComplete.getTaskId(),
-                waypointToComplete.getStepIds()
-            )
-                .observeOn(schedulerProvider.computation())
-                .retry(retryCount)
-                // force state to update
-                .subscribe(
-                    () -> forceSyncSubject.onNext(true),
-                    error -> Timber.e(error, "Failed to complete waypoint")
-                )
-        );
+    public void finishedDriving() {
+        forceSyncSubject.onNext(true);
     }
 
     @Override
     public Observable<OnlineViewState> getOnlineViewState() {
-        return currentPlan.observeOn(schedulerProvider.computation())
-            .map(plan -> {
+        return Observable.combineLatest(
+            currentPlan,
+            shouldShowTripDetailsSubject,
+            Pair::create
+        )
+            .observeOn(schedulerProvider.computation())
+            .map(planAndShouldShowDetails -> {
+                final VehiclePlan plan = planAndShouldShowDetails.first;
+                final boolean shouldShowTripDetails = planAndShouldShowDetails.second;
+                if (shouldShowTripDetails) {
+                    return OnlineViewState.tripDetails(plan);
+                }
                 if (plan.getWaypoints().isEmpty()) {
-                    return new OnlineViewState(DisplayType.IDLE, null);
+                    return OnlineViewState.idle();
                 }
                 final Waypoint currentWaypoint = plan.getWaypoints().get(0);
                 switch (currentWaypoint.getAction().getActionType()) {
                     case DRIVE_TO_PICKUP:
-                        return new OnlineViewState(DisplayType.DRIVING_TO_PICKUP, currentWaypoint);
+                        return OnlineViewState.drivingToPickup(currentWaypoint);
                     case DRIVE_TO_DROP_OFF:
-                        return new OnlineViewState(DisplayType.DRIVING_TO_DROP_OFF, currentWaypoint);
+                        return OnlineViewState.drivingToDropOff(currentWaypoint);
                     case LOAD_RESOURCE:
-                        return new OnlineViewState(DisplayType.WAITING_FOR_PASSENGER, currentWaypoint);
+                        return OnlineViewState.waitingForPassenger(currentWaypoint);
                 }
                 throw new IllegalStateException("Unknown step action " + currentWaypoint.getAction().getActionType().name());
             })
@@ -204,6 +187,15 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
     @Override
     public void destroy() {
         compositeDisposable.dispose();
-        vehicleInteractor.shutDown();
+    }
+
+    @Override
+    public void openTripDetails() {
+        shouldShowTripDetailsSubject.onNext(true);
+    }
+
+    @Override
+    public void closeTripDetails() {
+        shouldShowTripDetailsSubject.onNext(false);
     }
 }

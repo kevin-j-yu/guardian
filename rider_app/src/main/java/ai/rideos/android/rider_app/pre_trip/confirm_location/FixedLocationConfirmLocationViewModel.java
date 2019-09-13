@@ -35,6 +35,8 @@ import ai.rideos.android.common.reactive.RetryBehaviors;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.common.view.resources.ResourceProvider;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
+import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.interactors.StopInteractor;
 import ai.rideos.android.model.DesiredAndAssignedLocation;
 import com.google.common.collect.ImmutableMap;
@@ -63,7 +65,7 @@ public class FixedLocationConfirmLocationViewModel implements ConfirmLocationVie
     private final BehaviorSubject<DesiredAndAssignedLocation> resolvedLocationSubject = BehaviorSubject.create();
 
     private final SingleSubject<LatLng> firstLocationSubject = SingleSubject.create();
-    private final BehaviorSubject<ReverseGeocodingStatus> statusSubject = BehaviorSubject.create();
+    private final ProgressSubject geocodeProgress;
     private final PublishSubject<Notification> startedMovingSubject = PublishSubject.create();
 
     private final StopInteractor stopInteractor;
@@ -115,6 +117,8 @@ public class FixedLocationConfirmLocationViewModel implements ConfirmLocationVie
         this.fixedLocationDrawable = fixedLocationDrawable;
         this.schedulerProvider = schedulerProvider;
 
+        geocodeProgress = new ProgressSubject(ProgressState.LOADING);
+
         compositeDisposable.add(
             observableFleet.observeOn(schedulerProvider.computation())
                 .firstOrError()
@@ -122,14 +126,14 @@ public class FixedLocationConfirmLocationViewModel implements ConfirmLocationVie
                     currentLocationSubject
                         .observeOn(schedulerProvider.computation())
                         .toFlowable(BackpressureStrategy.LATEST)
-                        .doOnNext(latLng -> statusSubject.onNext(ReverseGeocodingStatus.IN_PROGRESS))
+                        .doOnNext(latLng -> geocodeProgress.started())
                         .flatMapSingle(location -> resolveDesiredLocation(location, fleetInfo), false, 1)
                         .subscribe(result -> {
                             if (result.isSuccess()) {
                                 resolvedLocationSubject.onNext(result.get());
-                                statusSubject.onNext(ReverseGeocodingStatus.IDLE);
+                                geocodeProgress.idle();
                             } else {
-                                statusSubject.onNext(ReverseGeocodingStatus.ERROR);
+                                geocodeProgress.failed();
                             }
                         })
                 ))
@@ -171,8 +175,8 @@ public class FixedLocationConfirmLocationViewModel implements ConfirmLocationVie
     }
 
     @Override
-    public Observable<ReverseGeocodingStatus> getReverseGeocodingStatus() {
-        return statusSubject.distinctUntilChanged();
+    public Observable<ProgressState> getReverseGeocodingProgress() {
+        return geocodeProgress.observeProgress();
     }
 
     @Override

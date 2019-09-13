@@ -17,6 +17,7 @@ package ai.rideos.android.rider_app.pre_trip.confirm_location;
 
 import ai.rideos.android.common.app.map.MapRelay;
 import ai.rideos.android.common.app.map.MapStateReceiver.MapCenterListener;
+import ai.rideos.android.common.app.progress.ProgressConnector;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.model.LatLng;
@@ -25,17 +26,16 @@ import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.common.view.layout.LoadableDividerView;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.pre_trip.confirm_location.ConfirmLocationFragment.ConfirmLocationArgs;
-import ai.rideos.android.rider_app.pre_trip.confirm_location.ConfirmLocationViewModel.ReverseGeocodingStatus;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.appcompat.widget.AppCompatImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.appcompat.widget.AppCompatImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import java.io.Serializable;
@@ -131,6 +131,11 @@ public class ConfirmLocationFragment extends FragmentViewController<ConfirmLocat
 
         final LoadableDividerView loadableDivider = view.findViewById(R.id.loadable_divider);
 
+        final ProgressConnector progressConnector = ProgressConnector.newBuilder()
+            .showLoadableDividerWhenLoading(loadableDivider)
+            .disableButtonWhenLoading(confirmButton)
+            .build();
+
         compositeDisposable = new CompositeDisposable();
 
         compositeDisposable.add(MapRelay.get().connectToProvider(
@@ -152,27 +157,10 @@ public class ConfirmLocationFragment extends FragmentViewController<ConfirmLocat
             confirmLocationViewModel.getReverseGeocodedLocation()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(locationField::setText),
-            confirmLocationViewModel.getReverseGeocodingStatus()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(status -> displayStatus(loadableDivider, confirmButton, status))
+            progressConnector.connect(
+                confirmLocationViewModel.getReverseGeocodingProgress().observeOn(AndroidSchedulers.mainThread())
+            )
         );
-    }
-
-    private void displayStatus(final LoadableDividerView loadableDivider,
-                               final Button confirmButton,
-                               final ReverseGeocodingStatus status) {
-        switch (status) {
-            case IDLE:
-                loadableDivider.stopLoading();
-                confirmButton.setEnabled(true);
-                break;
-            case IN_PROGRESS:
-            case ERROR:
-                // TODO improve error display
-                loadableDivider.startLoading();
-                confirmButton.setEnabled(false);
-                break;
-        }
     }
 
     @Override

@@ -13,10 +13,23 @@ The SDK is broken up into several libraries. There are 3 core libraries that are
 ## Running the Apps
 Provided in this library are the `example_rider_app` and `example_driver_app`. These should serve as a jumping off point for creating an application.
 
+### Creating a fleet
+Before you start hailing rides, you'll need to create a default fleet for your riders and drivers to operate on. The easiest way to do this is to grab your rideOS API key from [https://app.rideos.ai/profile](https://app.rideos.ai/profile). Once you have the API key, fill it into the following request, along with your intended fleet's ID.
+
+```bash
+curl -H "Content-Type: application/json" \
+    -H "X-Api-Key: YOUR_API_KEY" \
+    --data '{"id": "YOUR_FLEET_ID"}' \
+    https://api.rideos.ai/ride-hail-operations/v1/CreateFleet
+```
+Then, fill in your default fleet id in [example_driver_app/src/main/AndroidManifest.xml](example_driver_app/src/main/AndroidManifest.xml) and [example_driver_app/src/main/AndroidManifest.xml](example_rider_app/src/main/AndroidManifest.xml)
+
+### Creating an Auth0 client
 To run either of these applications, you will need an Auth0 client ID and database connection. We use Auth0 to authenticate users into our ride-hail endpoints, and we don't currently support 3rd party authentication. Please [contact our team](mailto:support@rideos.ai) to create the ID and user database.
 
 Once you have this information, fill in the relevant string resources in [example_rider_app/src/main/res/values/strings.xml](example_rider_app/src/main/res/values/strings.xml) and [example_driver_app/src/main/res/values/strings.xml](example_driver_app/src/main/res/values/strings.xml)
 
+### Creating necessary 3rd-party API keys
 Additionally, the example rider and driver app will require a Google API key. This key is used to use Google services such as location autocompletion, geocoding, and the map. Please follow [these instructions](https://developers.google.com/maps/documentation/android-sdk/get-api-key) to get a key. Then, add these key to [example_rider_app/src/main/AndroidManifest.xml](example_rider_app/src/main/AndroidManifest.xml) and [example_driver_app/src/main/AndroidManifest.xml](example_driver_app/src/main/AndroidManifest.xml).
 
 Lastly, the example driver app requires a Mapbox access token for turn-by-turn navigation. Please follow [these instructions](https://docs.mapbox.com/help/how-mapbox-works/access-tokens/#creating-and-managing-access-tokens) to get an access token. Then, add this key to [example_driver_app/src/main/AndroidManifest.xml](example_driver_app/src/main/AndroidManifest.xml). 

@@ -94,6 +94,14 @@ public class DefaultDrivingViewModel implements DrivingViewModel {
     }
 
     @Override
+    public void backToNavigation() {
+        stateMachine.transition(transitionIf(
+            state -> state.getDrivingStep() == DrivingStep.CONFIRMING_ARRIVAL,
+            state -> new DrivingViewState(DrivingStep.NAVIGATING, state.getWaypointToComplete())
+        ));
+    }
+
+    @Override
     public Observable<DrivingViewState> getDrivingViewState() {
         return stateMachine.observeCurrentState().distinctUntilChanged();
     }

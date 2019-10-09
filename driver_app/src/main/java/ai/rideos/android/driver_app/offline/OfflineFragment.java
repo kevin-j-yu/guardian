@@ -22,7 +22,11 @@ import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.EmptyArg;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageReader;
+import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageWriter;
 import ai.rideos.android.common.view.layout.TopDetailView;
+import ai.rideos.android.common.view.resources.AndroidResourceProvider;
+import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.viewmodel.map.FollowCurrentLocationMapStateProvider;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
 import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
@@ -35,6 +39,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
 import androidx.annotation.NonNull;
+import com.skydoves.balloon.ArrowOrientation;
+import com.skydoves.balloon.Balloon;
+import com.skydoves.balloon.Balloon.Builder;
+import com.skydoves.balloon.BalloonAnimation;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
@@ -57,6 +65,8 @@ public class OfflineFragment extends FragmentViewController<EmptyArg, GoOnlineLi
         );
         offlineViewModel = new DefaultOfflineViewModel(
             User.get(getContext()),
+            SharedPreferencesUserStorageReader.forContext(getContext()),
+            SharedPreferencesUserStorageWriter.forContext(getContext()),
             DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(getContext())
         );
     }
@@ -80,8 +90,10 @@ public class OfflineFragment extends FragmentViewController<EmptyArg, GoOnlineLi
         final View view = getView();
 
         final Switch onlineOfflineToggle = view.findViewById(R.id.online_toggle_switch);
+
         onlineOfflineToggle.setOnCheckedChangeListener((v, checked) -> {
             if (checked) {
+
                 offlineViewModel.goOnline();
             }
         });
@@ -89,6 +101,15 @@ public class OfflineFragment extends FragmentViewController<EmptyArg, GoOnlineLi
         final GoOnlineListener listener = getListener();
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.add(MapRelay.get().connectToProvider(mapStateProvider));
+
+        compositeDisposable.add(
+            offlineViewModel.shouldShowTutorial().observeOn(AndroidSchedulers.mainThread())
+                .subscribe(shouldShow -> {
+                    if (shouldShow) {
+                        showTooltip(onlineOfflineToggle);
+                    }
+                })
+        );
 
         final ProgressConnector progressConnector = ProgressConnector.newBuilder()
             .toggleSwitchWhenLoading(onlineOfflineToggle)
@@ -102,10 +123,37 @@ public class OfflineFragment extends FragmentViewController<EmptyArg, GoOnlineLi
         );
     }
 
+    private void showTooltip(final Switch onlineOfflineToggle) {
+        final ResourceProvider resourceProvider = AndroidResourceProvider.forContext(getContext());
+        final Balloon balloon = new Builder(getContext())
+            .setArrowSize(8)
+            .setArrowOrientation(ArrowOrientation.TOP)
+            .setArrowVisible(true)
+            .setWidth(285)
+            .setHeight(86)
+            .setTextSize(17f)
+            .setCornerRadius(6f)
+            .setText(getString(R.string.go_online_tutorial_text))
+            .setTextColor(resourceProvider.getColor(R.attr.rideos_tool_tip_font_color))
+            .setBackgroundColor(resourceProvider.getColor(R.attr.rideos_tool_tip_background_color))
+            .setBalloonAnimation(BalloonAnimation.FADE)
+            .setDismissWhenTouchOutside(true)
+            .setLifecycleOwner(this)
+            .build();
+        balloon.showAlignBottom(onlineOfflineToggle, 0, 16);
+        balloon.setOnBalloonClickListener(v -> balloon.dismiss());
+        onlineOfflineToggle.setOnClickListener(click -> balloon.dismiss());
+    }
+
     @Override
     public void onStop() {
         super.onStop();
         compositeDisposable.dispose();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
         offlineViewModel.destroy();
     }
 }

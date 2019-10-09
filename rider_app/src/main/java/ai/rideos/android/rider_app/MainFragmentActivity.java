@@ -100,10 +100,12 @@ public class MainFragmentActivity
             .getOrDefault(true);
 
         if (enablePushNotifications) {
-            compositeDisposable.add(PushNotificationManager.forRider(this).requestTokenAndSync().subscribe(
-                () -> Timber.i("Initialized device token"),
-                e -> Timber.e(e, "Failed to request token")
-            ));
+            compositeDisposable.add(
+                PushNotificationManager.forRider(this).requestTokenAndSync().subscribe(
+                    () -> Timber.i("Initialized device token"),
+                    e -> Timber.e(e, "Failed to request token")
+                ));
+
         }
     }
 

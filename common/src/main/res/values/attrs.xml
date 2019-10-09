@@ -40,6 +40,8 @@
         <attr format="color|reference" name="rideos.settings_heading_color"/>
         <attr format="color|reference" name="rideos.settings_sub_heading_color"/>
         <attr format="color|reference" name="rideos.error_font_color"/>
+        <attr format="color|reference" name="rideos.tool_tip_background_color"/>
+        <attr format="color|reference" name="rideos.tool_tip_font_color"/>
         <attr format="reference" name="rideos.car_icon"/>
         <attr format="reference" name="rideos.pickup_pin"/>
         <attr format="reference" name="rideos.drop_off_pin"/>

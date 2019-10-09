@@ -16,53 +16,80 @@
 package ai.rideos.android.common.app.menu_navigator.account_settings;
 
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.model.UserProfile;
+import ai.rideos.android.common.reactive.RetryBehaviors;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
-import ai.rideos.android.common.user_storage.StorageKeys;
-import ai.rideos.android.common.user_storage.UserStorageReader;
-import ai.rideos.android.common.user_storage.UserStorageWriter;
-import com.auth0.android.result.UserProfile;
 import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
 import timber.log.Timber;
 
 public class DefaultAccountSettingsViewModel implements AccountSettingsViewModel {
     private static final int RETRY_COUNT = 3;
 
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     private final BehaviorSubject<String> editedPreferredNameSubject = BehaviorSubject.create();
-    private final BehaviorSubject<String> savedPreferredNameSubject;
+    private final BehaviorSubject<String> editedPhoneNumberSubject = BehaviorSubject.create();
+    private final BehaviorSubject<String> savedPreferredNameSubject = BehaviorSubject.create();
+    private final BehaviorSubject<String> savedPhoneNumberSubject = BehaviorSubject.create();
 
     private final User user;
-    private final UserStorageWriter userStorageWriter;
+    private final UserProfileInteractor userProfileInteractor;
     private final SchedulerProvider schedulerProvider;
 
     public DefaultAccountSettingsViewModel(final User user,
-                                           final UserStorageReader userStorageReader,
-                                           final UserStorageWriter userStorageWriter) {
-        this(user, userStorageReader, userStorageWriter, new DefaultSchedulerProvider());
+                                           final UserProfileInteractor userProfileInteractor) {
+        this(user, userProfileInteractor, new DefaultSchedulerProvider());
     }
 
     public DefaultAccountSettingsViewModel(final User user,
-                                           final UserStorageReader userStorageReader,
-                                           final UserStorageWriter userStorageWriter,
+                                           final UserProfileInteractor userProfileInteractor,
                                            final SchedulerProvider schedulerProvider) {
         this.user = user;
-        this.userStorageWriter = userStorageWriter;
+        this.userProfileInteractor = userProfileInteractor;
         this.schedulerProvider = schedulerProvider;
 
-        savedPreferredNameSubject = BehaviorSubject.createDefault(
-            userStorageReader.getStringPreference(StorageKeys.PREFERRED_NAME)
+        compositeDisposable.add(
+            userProfileInteractor.getUserProfile(user.getId())
+                .retry(RetryBehaviors.DEFAULT_RETRY_COUNT)
+                .subscribe(
+                    profile -> {
+                        savedPreferredNameSubject.onNext(profile.getPreferredName());
+                        savedPhoneNumberSubject.onNext(profile.getPhoneNumber());
+                    },
+                    error -> Timber.e(error, "Couldn't save user profile")
+                )
         );
     }
 
     @Override
     public void save() {
-        final String preferredName = editedPreferredNameSubject.getValue();
+        final String preferredName = getCurrentFieldValue(editedPreferredNameSubject, savedPreferredNameSubject);
+        final String phoneNumber = getCurrentFieldValue(editedPhoneNumberSubject, savedPhoneNumberSubject);
 
-        if (preferredName != null) {
-            userStorageWriter.storeStringPreference(StorageKeys.PREFERRED_NAME, preferredName);
-            savedPreferredNameSubject.onNext(preferredName);
-        }
+        // TODO consider exposing this completable to the view controller so it can display errors
+        compositeDisposable.add(
+            userProfileInteractor.storeUserProfile(
+                user.getId(),
+                new UserProfile(preferredName, phoneNumber)
+            )
+                .retry(RetryBehaviors.DEFAULT_RETRY_COUNT)
+                .subscribe(
+                    () -> {
+                        savedPreferredNameSubject.onNext(preferredName);
+                        savedPhoneNumberSubject.onNext(phoneNumber);
+                    },
+                    error -> Timber.e(error, "Couldn't save user profile")
+                )
+        );
+    }
+
+    private String getCurrentFieldValue(final BehaviorSubject<String> editedValueSubject,
+                                        final BehaviorSubject<String> savedValueSubject) {
+        final String editedValue = editedValueSubject.getValue();
+        return editedValue == null ? savedValueSubject.getValue() : editedValue;
     }
 
     @Override
@@ -71,8 +98,18 @@ public class DefaultAccountSettingsViewModel implements AccountSettingsViewModel
     }
 
     @Override
+    public void editPhoneNumber(final String phoneNumber) {
+        editedPhoneNumberSubject.onNext(phoneNumber);
+    }
+
+    @Override
     public Observable<String> getPreferredName() {
-        return Observable.just(savedPreferredNameSubject.getValue());
+        return savedPreferredNameSubject;
+    }
+
+    @Override
+    public Observable<String> getPhoneNumber() {
+        return savedPhoneNumberSubject;
     }
 
     @Override
@@ -80,7 +117,7 @@ public class DefaultAccountSettingsViewModel implements AccountSettingsViewModel
         return user.fetchUserProfile()
             .observeOn(schedulerProvider.computation())
             .retry(RETRY_COUNT)
-            .map(UserProfile::getEmail)
+            .map(com.auth0.android.result.UserProfile::getEmail)
             .doOnError(e -> Timber.e(e, "Failed to fetch profile for user"))
             .onErrorReturnItem("")
             .toObservable();
@@ -89,12 +126,27 @@ public class DefaultAccountSettingsViewModel implements AccountSettingsViewModel
     @Override
     public Observable<Boolean> isSavingEnabled() {
         return Observable.combineLatest(
-            editedPreferredNameSubject,
-            savedPreferredNameSubject,
-            (edited, saved) -> !edited.equals(saved)
+            observeFieldDifferences(editedPreferredNameSubject, savedPreferredNameSubject),
+            observeFieldDifferences(editedPhoneNumberSubject, savedPhoneNumberSubject),
+            Boolean::logicalOr
         )
             .observeOn(schedulerProvider.computation())
-            .startWith(false)
             .distinctUntilChanged();
+    }
+
+    private Observable<Boolean> observeFieldDifferences(final BehaviorSubject<String> editedValueSubject,
+                                                        final BehaviorSubject<String> savedValueSubject) {
+        return Observable.combineLatest(
+            editedValueSubject,
+            savedValueSubject,
+            (edited, saved) -> !edited.equals(saved)
+        )
+            .startWith(false);
+    }
+
+    @Override
+    public void destroy() {
+        compositeDisposable.dispose();
+        userProfileInteractor.shutDown();
     }
 }

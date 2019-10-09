@@ -43,6 +43,8 @@ import timber.log.Timber;
  * same interface as FusedLocationProviderClient, so this implementation is very close to FusedLocationDeviceLocator.
  */
 public class MapboxDeviceLocator implements DeviceLocator {
+    private static final int DEFAULT_POLL_INTERVAL_MILLIS = 1000;
+
     private final LocationEngine mapboxLocationEngine;
     private final PermissionsChecker permissionsChecker;
     private final SchedulerProvider schedulerProvider;
@@ -74,11 +76,19 @@ public class MapboxDeviceLocator implements DeviceLocator {
         if (!permissionsChecker.areLocationPermissionsGranted()) {
             return Single.error(new PermissionsNotGrantedException("Location permissions not granted"));
         }
-        return Single.<Location>create(
+        return Single.<LocationAndHeading>create(
             emitter -> mapboxLocationEngine.getLastLocation(new LocationEngineCallback<LocationEngineResult>() {
                 @Override
                 public void onSuccess(final LocationEngineResult result) {
-                    emitter.onSuccess(result.getLastLocation());
+                    final Location latestLocation = result.getLastLocation();
+                    if (latestLocation == null) {
+                        emitter.onError(new IllegalStateException("Latest location is null"));
+                    } else {
+                        emitter.onSuccess(new LocationAndHeading(
+                            Locations.getLatLngFromAndroidLocation(latestLocation),
+                            latestLocation.getBearing()
+                        ));
+                    }
                 }
 
                 @Override
@@ -87,10 +97,13 @@ public class MapboxDeviceLocator implements DeviceLocator {
                 }
             })
         )
-            .map(location -> new LocationAndHeading(
-                Locations.getLatLngFromAndroidLocation(location),
-                location.getBearing()
-            ))
+            // In the event that we cannot get the last known location, log the error and get the location through
+            // polling
+            .onErrorResumeNext(e -> {
+                Timber.e(e, "Could not get last known location");
+                return observeCurrentLocation(DEFAULT_POLL_INTERVAL_MILLIS)
+                    .firstOrError(); // this doesn't actually ever error
+            })
             .subscribeOn(schedulerProvider.mainThread());
     }
 

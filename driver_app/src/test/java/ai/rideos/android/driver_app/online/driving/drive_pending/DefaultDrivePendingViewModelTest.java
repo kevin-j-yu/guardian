@@ -16,6 +16,7 @@
 package ai.rideos.android.driver_app.online.driving.drive_pending;
 
 import ai.rideos.android.common.device.DeviceLocator;
+import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
@@ -27,9 +28,14 @@ import ai.rideos.android.common.reactive.TestUtils;
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.view.strings.RouteFormatter;
+import ai.rideos.android.model.TripResourceInfo;
+import ai.rideos.android.model.VehiclePlan.Action;
+import ai.rideos.android.model.VehiclePlan.Action.ActionType;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -38,6 +44,15 @@ import org.mockito.Mockito;
 public class DefaultDrivePendingViewModelTest {
     private static final LatLng ORIGIN = new LatLng(0, 0);
     private static final LatLng DESTINATION = new LatLng(1, 1);
+    private static final Waypoint WAYPOINT = new Waypoint(
+        "trip-1",
+        Collections.singletonList("step-1"),
+        new Action(
+            DESTINATION,
+            ActionType.DRIVE_TO_PICKUP,
+            new TripResourceInfo(4, "Robby Rider")
+        )
+    );
     private static final RouteInfoModel ROUTE = new RouteInfoModel(
         Arrays.asList(ORIGIN, DESTINATION),
         10,
@@ -45,9 +60,9 @@ public class DefaultDrivePendingViewModelTest {
     );
     private static final String SUCCESS_ROUTE_DISPLAY = "success";
     private static final int DESTINATION_PIN = 1;
+    private static final int PASSENGER_TEMPLATE = 2;
 
     private DefaultDrivePendingViewModel viewModelUnderTest;
-    private RouteInteractor routeInteractor;
 
     @Before
     public void setUp() {
@@ -56,7 +71,7 @@ public class DefaultDrivePendingViewModelTest {
             Single.just(new LocationAndHeading(ORIGIN, 0f))
         );
 
-        routeInteractor = Mockito.mock(RouteInteractor.class);
+        final RouteInteractor routeInteractor = Mockito.mock(RouteInteractor.class);
         Mockito.when(routeInteractor.getRoute(ORIGIN, DESTINATION))
             .thenReturn(Observable.just(ROUTE));
 
@@ -69,20 +84,13 @@ public class DefaultDrivePendingViewModelTest {
         viewModelUnderTest = new DefaultDrivePendingViewModel(
             deviceLocator,
             routeInteractor,
+            Mockito.mock(GeocodeInteractor.class),
             Mockito.mock(ResourceProvider.class),
-            DESTINATION,
+            WAYPOINT,
             DESTINATION_PIN,
-            new TrampolineSchedulerProvider(),
-            routeFormatter
+            PASSENGER_TEMPLATE,
+            new TrampolineSchedulerProvider()
         );
-    }
-
-    @Test
-    public void testGetRouteDetailFromRouteInteractor() {
-        viewModelUnderTest.getRouteDetailText().test()
-            .assertValueCount(1)
-            .assertValueAt(0, SUCCESS_ROUTE_DISPLAY);
-        Mockito.verify(routeInteractor).getRoute(ORIGIN, DESTINATION);
     }
 
     @Test

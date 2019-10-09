@@ -21,15 +21,13 @@ import androidx.annotation.AttrRes;
 import androidx.annotation.StringRes;
 
 public class DrivingInput {
-    private final int drivePendingTitleResourceId;
-    private final int arrivalTitleResourceId;
+    private final int passengerDetailTemplate;
     private final int drawableDestinationPinAttr;
     private final Waypoint waypointToComplete;
 
     public static DrivingInput forPickup(final Waypoint waypointToComplete) {
         return new DrivingInput(
-            R.string.drive_pending_pickup_title_text,
-            R.string.confirming_arrival_pickup_title_text,
+            R.string.pickup_passenger_detail_template,
             R.attr.rideos_pickup_pin,
             waypointToComplete
         );
@@ -37,29 +35,22 @@ public class DrivingInput {
 
     public static DrivingInput forDropOff(final Waypoint waypointToComplete) {
         return new DrivingInput(
-            R.string.drive_pending_drop_off_title_text,
-            R.string.confirming_arrival_drop_off_title_text,
+            R.string.drop_off_passenger_detail_template,
             R.attr.rideos_drop_off_pin,
             waypointToComplete
         );
     }
 
-    private DrivingInput(@StringRes final int drivePendingTitleResourceId,
-                         @StringRes final int arrivalTitleResourceId,
+    private DrivingInput(@StringRes final int passengerDetailTemplate,
                          @AttrRes final int drawableDestinationPinAttr,
                          final Waypoint waypointToComplete) {
-        this.drivePendingTitleResourceId = drivePendingTitleResourceId;
-        this.arrivalTitleResourceId = arrivalTitleResourceId;
+        this.passengerDetailTemplate = passengerDetailTemplate;
         this.drawableDestinationPinAttr = drawableDestinationPinAttr;
         this.waypointToComplete = waypointToComplete;
     }
 
-    public int getDrivePendingTitleResourceId() {
-        return drivePendingTitleResourceId;
-    }
-
-    public int getArrivalTitleResourceId() {
-        return arrivalTitleResourceId;
+    public int getPassengerDetailTemplate() {
+        return passengerDetailTemplate;
     }
 
     public Waypoint getWaypointToComplete() {

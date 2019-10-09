@@ -53,9 +53,9 @@ public class DrivingCoordinator implements Coordinator<DrivingInput> {
                         navController.navigateTo(
                             new DrivePendingFragment(),
                             new DrivePendingArgs(
-                                input.getDrivePendingTitleResourceId(),
+                                input.getPassengerDetailTemplate(),
                                 input.getDrawableDestinationPinAttr(),
-                                destination
+                                state.getWaypointToComplete()
                             ),
                             drivingViewModel
                         );
@@ -63,7 +63,7 @@ public class DrivingCoordinator implements Coordinator<DrivingInput> {
                     case NAVIGATING:
                         navController.navigateTo(
                             new MapboxNavigationFragment(),
-                            new NavigationArgs(destination, true),
+                            new NavigationArgs(destination),
                             drivingViewModel
                         );
                         break;
@@ -71,7 +71,7 @@ public class DrivingCoordinator implements Coordinator<DrivingInput> {
                         navController.navigateTo(
                             new ConfirmingArrivalFragment(),
                             new ConfirmingArrivalArgs(
-                                input.getArrivalTitleResourceId(),
+                                input.getPassengerDetailTemplate(),
                                 input.getDrawableDestinationPinAttr(),
                                 state.getWaypointToComplete()
                             ),

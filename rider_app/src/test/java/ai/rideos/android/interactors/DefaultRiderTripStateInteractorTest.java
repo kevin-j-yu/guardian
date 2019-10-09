@@ -16,7 +16,6 @@
 package ai.rideos.android.interactors;
 
 import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.RouteInfoModel;
@@ -61,10 +60,8 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcCleanupRule;
-import io.reactivex.Observable;
 import io.reactivex.Single;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,7 +76,10 @@ public class DefaultRiderTripStateInteractorTest {
     private static final VehicleInfo VEHICLE_INFO = VehicleInfo.newBuilder()
         .setLicensePlate("license-1")
         .setDriverInfo(DriverInfo.newBuilder().setContactInfo(
-            ContactInfo.newBuilder().setContactUrl("https://rideos.ai")
+            ContactInfo.newBuilder()
+                .setName("name")
+                .setContactUrl("https://rideos.ai")
+                .setPhoneNumber("123-456-7890")
         ))
         .build();
     private static final LatLng ORIGIN = new LatLng(0, 0);
@@ -207,9 +207,11 @@ public class DefaultRiderTripStateInteractorTest {
                 (long) ROUTE_TO_PICKUP.getTravelTimeInSeconds() * 1000,
                 ROUTE_TO_PICKUP.getDistanceInMeters()
             ),
-            new ai.rideos.android.model.VehicleInfo(
+            new ai.rideos.android.common.model.VehicleInfo(
                 VEHICLE_INFO.getLicensePlate(),
-                new ai.rideos.android.model.VehicleInfo.ContactInfo(
+                new ai.rideos.android.common.model.VehicleInfo.ContactInfo(
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getName(),
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getPhoneNumber(),
                     VEHICLE_INFO.getDriverInfo().getContactInfo().getContactUrl()
                 )
             ),
@@ -258,9 +260,11 @@ public class DefaultRiderTripStateInteractorTest {
         final TripStateModel expectedModel = new TripStateModel(
             Stage.WAITING_FOR_PICKUP,
             null,
-            new ai.rideos.android.model.VehicleInfo(
+            new ai.rideos.android.common.model.VehicleInfo(
                 VEHICLE_INFO.getLicensePlate(),
-                new ai.rideos.android.model.VehicleInfo.ContactInfo(
+                new ai.rideos.android.common.model.VehicleInfo.ContactInfo(
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getName(),
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getPhoneNumber(),
                     VEHICLE_INFO.getDriverInfo().getContactInfo().getContactUrl()
                 )
             ),
@@ -308,9 +312,11 @@ public class DefaultRiderTripStateInteractorTest {
                 (long) ROUTE_TO_DROP_OFF.getTravelTimeInSeconds() * 1000,
                 ROUTE_TO_DROP_OFF.getDistanceInMeters()
             ),
-            new ai.rideos.android.model.VehicleInfo(
+            new ai.rideos.android.common.model.VehicleInfo(
                 VEHICLE_INFO.getLicensePlate(),
-                new ai.rideos.android.model.VehicleInfo.ContactInfo(
+                new ai.rideos.android.common.model.VehicleInfo.ContactInfo(
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getName(),
+                    VEHICLE_INFO.getDriverInfo().getContactInfo().getPhoneNumber(),
                     VEHICLE_INFO.getDriverInfo().getContactInfo().getContactUrl()
                 )
             ),

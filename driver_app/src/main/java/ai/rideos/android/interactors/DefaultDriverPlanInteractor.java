@@ -24,6 +24,7 @@ import ai.rideos.android.model.TripResourceInfo;
 import ai.rideos.android.model.VehiclePlan;
 import ai.rideos.android.model.VehiclePlan.Action.ActionType;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.ContactInfo;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Step;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Step.VehicleActionCase;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.GetVehicleStateRequest;
@@ -88,14 +89,14 @@ public class DefaultDriverPlanInteractor
                                     step,
                                     ActionType.DRIVE_TO_PICKUP,
                                     nextStep.getPickupRider().getRiderCount(),
-                                    nextStep.getPickupRider().getRiderInfo().getContactInfo().getName()
+                                    nextStep.getPickupRider().getRiderInfo().getContactInfo()
                                 ));
                             } else {
                                 waypoints.add(getWaypointForStep(
                                     step,
                                     ActionType.DRIVE_TO_DROP_OFF,
                                     nextStep.getDropoffRider().getRiderCount(),
-                                    nextStep.getDropoffRider().getRiderInfo().getContactInfo().getName(),
+                                    nextStep.getDropoffRider().getRiderInfo().getContactInfo(),
                                     nextStep.getId()
                                 ));
                                 // Skip over the drop-off step, since it has been accounted for as part of processing
@@ -113,7 +114,7 @@ public class DefaultDriverPlanInteractor
                                 step,
                                 ActionType.LOAD_RESOURCE,
                                 step.getPickupRider().getRiderCount(),
-                                step.getPickupRider().getRiderInfo().getContactInfo().getName()
+                                step.getPickupRider().getRiderInfo().getContactInfo()
                             ));
                             break;
                         case DROPOFF_RIDER:
@@ -123,7 +124,7 @@ public class DefaultDriverPlanInteractor
                                 step,
                                 ActionType.DRIVE_TO_DROP_OFF,
                                 step.getDropoffRider().getRiderCount(),
-                                step.getDropoffRider().getRiderInfo().getContactInfo().getName()
+                                step.getDropoffRider().getRiderInfo().getContactInfo()
                             ));
                             break;
                     }
@@ -137,18 +138,21 @@ public class DefaultDriverPlanInteractor
     private static Waypoint getWaypointForStep(final Step step,
                                                final ActionType actionType,
                                                final int riderCount,
-                                               final String riderName,
+                                               final ContactInfo contactInfo,
                                                final String... additionalStepsIdsInWaypoint) {
         final LinkedHashSet<String> uniqueStepIds = new LinkedHashSet<>();
         uniqueStepIds.add(step.getId());
         uniqueStepIds.addAll(Arrays.asList(additionalStepsIdsInWaypoint));
+
+        final String phoneNumber = contactInfo.getPhoneNumber().isEmpty() ? null : contactInfo.getPhoneNumber();
+
         return new Waypoint(
             step.getTripId(),
             new ArrayList<>(uniqueStepIds),
             new VehiclePlan.Action(
                 Locations.fromRideOsPosition(step.getPosition()),
                 actionType,
-                new TripResourceInfo(riderCount, riderName)
+                new TripResourceInfo(riderCount, contactInfo.getName(), phoneNumber)
             )
         );
     }

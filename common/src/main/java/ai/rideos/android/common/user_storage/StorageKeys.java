@@ -23,4 +23,5 @@ public class StorageKeys {
     public static final StorageKey<String> RIDEOS_API_ENV
         = new StorageKey<>("rideos_api_env", ApiEnvironment.PRODUCTION.getStoredName());
     public static final StorageKey<String> PREFERRED_NAME = new StorageKey<>("preferred_name", "");
+    public static final StorageKey<String> PHONE_NUMBER = new StorageKey<>("phone_number", "");
 }

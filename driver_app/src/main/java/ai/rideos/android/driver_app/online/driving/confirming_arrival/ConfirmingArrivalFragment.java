@@ -20,7 +20,6 @@ import ai.rideos.android.common.app.progress.ProgressConnector;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.common.view.layout.LoadableDividerView;
 import ai.rideos.android.common.view.resources.AndroidResourceProvider;
 import ai.rideos.android.common.view.resources.ResourceProvider;
@@ -29,6 +28,7 @@ import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
 import ai.rideos.android.driver_app.online.driving.confirming_arrival.ConfirmingArrivalFragment.ConfirmingArrivalArgs;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.android.view.HeaderAndBottomDetailView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,14 +45,14 @@ import java.io.Serializable;
 
 public class ConfirmingArrivalFragment extends FragmentViewController<ConfirmingArrivalArgs, ConfirmArrivalListener> {
     public static class ConfirmingArrivalArgs implements Serializable {
-        private final int titleTextResourceId;
+        private final int passengerDetailTemplate;
         private final int drawableDestinationPinAttr;
         private final Waypoint waypoint;
 
-        public ConfirmingArrivalArgs(@StringRes final int titleTextResourceId,
+        public ConfirmingArrivalArgs(@StringRes final int passengerDetailTemplate,
                                      @AttrRes final int drawableDestinationPinAttr,
                                      final Waypoint waypoint) {
-            this.titleTextResourceId = titleTextResourceId;
+            this.passengerDetailTemplate = passengerDetailTemplate;
             this.drawableDestinationPinAttr = drawableDestinationPinAttr;
             this.waypoint = waypoint;
         }
@@ -74,10 +74,11 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
             DriverDependencyRegistry.mapDependencyFactory().getGeocodeInteractor(getContext()),
             DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(getContext()),
             User.get(getContext()),
+            new PotentiallySimulatedDeviceLocator(getContext()),
+            resourceProvider,
             getArgs().waypoint,
             resourceProvider.getDrawableId(getArgs().drawableDestinationPinAttr),
-            new PotentiallySimulatedDeviceLocator(getContext()),
-            resourceProvider
+            getArgs().passengerDetailTemplate
         );
     }
 
@@ -85,10 +86,16 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.confirming_arrival);
+        final View view = HeaderAndBottomDetailView.inflate(
+            inflater,
+            container,
+            getActivity(),
+            R.layout.on_trip_header,
+            R.layout.confirming_arrival
+        );
 
-        final TextView titleView = view.findViewById(R.id.confirming_arrival_title);
-        titleView.setText(getArgs().titleTextResourceId);
+        final Button confirmArrivalButton = view.findViewById(R.id.on_trip_action_button);
+        confirmArrivalButton.setText(R.string.confirm_arrival_button_text);
         return view;
 
     }
@@ -98,24 +105,30 @@ public class ConfirmingArrivalFragment extends FragmentViewController<Confirming
         super.onStart();
         final View view = getView();
 
-        final Button confirmArrivalButton = view.findViewById(R.id.confirm_arrival_button);
+        final Button confirmArrivalButton = view.findViewById(R.id.on_trip_action_button);
         confirmArrivalButton.setOnClickListener(click -> arrivalViewModel.confirmArrival());
 
-        final View expandDetailsButton = view.findViewById(R.id.expand_trip_details_button);
+        final TextView passengerDetail = view.findViewById(R.id.on_trip_passenger_detail);
+        passengerDetail.setText(arrivalViewModel.getPassengerDetailText());
+
+        final View expandDetailsButton = view.findViewById(R.id.passenger_detail_row);
         expandDetailsButton.setOnClickListener(click -> getListener().openTripDetails());
+
+        final Button backToNavButton = view.findViewById(R.id.back_to_nav_button);
+        backToNavButton.setOnClickListener(click -> getListener().backToNavigation());
 
         final LoadableDividerView loadableDividerView = view.findViewById(R.id.loadable_divider);
 
-        final TextView detailText = view.findViewById(R.id.confirming_arrival_detail);
+        final TextView onTripAddress = view.findViewById(R.id.on_trip_address);
+
+        final Disposable addressSubscription = arrivalViewModel.getDestinationAddress()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(onTripAddress::setText);
 
         final Disposable mapSubscription = MapRelay.get().connectToProvider(arrivalViewModel);
 
-        final Disposable detailSubscription = arrivalViewModel.getArrivalDetailText()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(detailText::setText);
-
         compositeDisposable = new CompositeDisposable();
-        compositeDisposable.addAll(mapSubscription, detailSubscription);
+        compositeDisposable.addAll(mapSubscription, addressSubscription);
 
         final ProgressConnector progressConnector = ProgressConnector.newBuilder()
             .disableButtonWhenLoadingOrSuccessful(confirmArrivalButton)

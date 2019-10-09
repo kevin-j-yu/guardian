@@ -16,6 +16,8 @@
 package ai.rideos.android.interactors;
 
 import ai.rideos.android.common.model.LocationAndHeading;
+import ai.rideos.android.common.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo.ContactInfo;
 import ai.rideos.android.model.VehicleDisplayRouteLeg;
 import ai.rideos.android.model.VehicleRegistration;
 import ai.rideos.android.model.VehicleStatus;
@@ -36,9 +38,17 @@ public interface DriverVehicleInteractor {
 
     Completable rejectTrip(final String vehicleId, final String tripId);
 
+    Completable cancelTrip(final String tripId);
+
     Completable updateVehicleLocation(final String vehicleId, final LocationAndHeading locationAndHeading);
 
     Completable updateVehicleRoute(final String vehicleId, final List<VehicleDisplayRouteLeg> updatedLegs);
+
+    Completable updateContactInfo(final String vehicleId, final ContactInfo contactInfo);
+
+    Completable updateLicensePlate(final String vehicleId, final String licensePlate);
+
+    Single<VehicleInfo> getVehicleInfo(final String vehicleId);
 
     void shutDown();
 }

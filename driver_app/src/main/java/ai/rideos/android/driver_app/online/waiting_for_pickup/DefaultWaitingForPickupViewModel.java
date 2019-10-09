@@ -17,6 +17,7 @@ package ai.rideos.android.driver_app.online.waiting_for_pickup;
 
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
+import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.map.CameraUpdate;
 import ai.rideos.android.common.model.map.CenterPin;
@@ -26,16 +27,20 @@ import ai.rideos.android.common.model.map.LatLngBounds;
 import ai.rideos.android.common.model.map.MapSettings;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
+import ai.rideos.android.common.user_storage.UserStorageReader;
+import ai.rideos.android.common.user_storage.UserStorageWriter;
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.driver_app.R;
+import ai.rideos.android.driver_app.online.DefaultOnTripViewModel;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
-import ai.rideos.android.model.TripResourceInfo;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.android.settings.DriverStorageKeys;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
 import java.util.Arrays;
@@ -44,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
+class DefaultWaitingForPickupViewModel extends DefaultOnTripViewModel implements WaitingForPickupViewModel {
     private static final int POLL_INTERVAL_MILLIS = 1000;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -53,27 +58,59 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     private final User user;
     private final ResourceProvider resourceProvider;
     private final SchedulerProvider schedulerProvider;
+    private final UserStorageReader userStorageReader;
+    private final UserStorageWriter userStorageWriter;
+    private final WaitingForPickupListener listener;
     private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
     private final ProgressSubject progressSubject = new ProgressSubject();
 
     public DefaultWaitingForPickupViewModel(final DriverVehicleInteractor vehicleInteractor,
-                                            final User user,
-                                            final Waypoint waypoint,
-                                            final ResourceProvider resourceProvider,
-                                            final DeviceLocator deviceLocator) {
-        this(vehicleInteractor, user, waypoint, resourceProvider, deviceLocator, new DefaultSchedulerProvider());
-    }
-
-    public DefaultWaitingForPickupViewModel(final DriverVehicleInteractor vehicleInteractor,
+                                            final GeocodeInteractor geocodeInteractor,
                                             final User user,
                                             final Waypoint waypoint,
                                             final ResourceProvider resourceProvider,
                                             final DeviceLocator deviceLocator,
+                                            final UserStorageReader userStorageReader,
+                                            final UserStorageWriter userStorageWriter,
+                                            final WaitingForPickupListener listener) {
+        this(
+            vehicleInteractor,
+            geocodeInteractor,
+            user,
+            waypoint,
+            resourceProvider,
+            deviceLocator,
+            userStorageReader,
+            userStorageWriter,
+            listener,
+            new DefaultSchedulerProvider()
+        );
+    }
+
+    public DefaultWaitingForPickupViewModel(final DriverVehicleInteractor vehicleInteractor,
+                                            final GeocodeInteractor geocodeInteractor,
+                                            final User user,
+                                            final Waypoint waypoint,
+                                            final ResourceProvider resourceProvider,
+                                            final DeviceLocator deviceLocator,
+                                            final UserStorageReader userStorageReader,
+                                            final UserStorageWriter userStorageWriter,
+                                            final WaitingForPickupListener listener,
                                             final SchedulerProvider schedulerProvider) {
+        super(
+            geocodeInteractor,
+            waypoint,
+            resourceProvider,
+            R.string.pickup_passenger_detail_template,
+            schedulerProvider
+        );
         this.waypoint = waypoint;
         this.vehicleInteractor = vehicleInteractor;
         this.user = user;
         this.resourceProvider = resourceProvider;
+        this.userStorageReader = userStorageReader;
+        this.userStorageWriter = userStorageWriter;
+        this.listener = listener;
         this.schedulerProvider = schedulerProvider;
         compositeDisposable.add(
             deviceLocator.observeCurrentLocation(POLL_INTERVAL_MILLIS).subscribe(currentLocation::onNext)
@@ -81,21 +118,17 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     }
 
     @Override
-    public String getPassengersToPickupText() {
-        final String passengersToPickupText;
-        final TripResourceInfo tripResourceInfo = waypoint.getAction().getTripResourceInfo();
-        if (tripResourceInfo.getNumPassengers() > 1) {
-            final int numberOfRidersExcludingRequester = tripResourceInfo.getNumPassengers() - 1;
-            passengersToPickupText = String.format(
-                "%s + %s",
-                tripResourceInfo.getNameOfTripRequester(),
-                numberOfRidersExcludingRequester
-            );
-        } else {
-            passengersToPickupText = tripResourceInfo.getNameOfTripRequester();
-        }
+    public void openTripDetails() {
+        userStorageWriter.storeBooleanPreference(DriverStorageKeys.TRIP_DETAIL_TUTORIAL_SHOWN, true);
+        listener.openTripDetails();
+    }
 
-        return resourceProvider.getString(R.string.waiting_for_pickup_title_format, passengersToPickupText);
+    @Override
+    public Single<Boolean> shouldShowTripDetailTutorial() {
+        return userStorageReader.observeBooleanPreference(DriverStorageKeys.TRIP_DETAIL_TUTORIAL_SHOWN)
+            // Only show if the tutorial hasn't been shown before
+            .map(tutorialShown -> !tutorialShown)
+            .firstOrError();
     }
 
     @Override
@@ -158,5 +191,6 @@ class DefaultWaitingForPickupViewModel implements WaitingForPickupViewModel {
     @Override
     public void destroy() {
         compositeDisposable.dispose();
+        vehicleInteractor.shutDown();
     }
 }

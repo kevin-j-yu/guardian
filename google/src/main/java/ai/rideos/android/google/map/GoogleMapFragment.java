@@ -67,7 +67,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GoogleMapFragment extends Fragment {
-    private static final int BOUNDS_PADDING = 50;
+    private static final int BOUNDS_PADDING = 90;
     private static final int ANIMATION_SPEED_MILLIS = 250;
     private static final int RE_CENTER_PADDING_DP = 20;
 

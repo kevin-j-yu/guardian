@@ -15,34 +15,39 @@
  */
 package ai.rideos.android.common.app.menu_navigator.menu.navigation_header;
 
+import ai.rideos.android.common.app.menu_navigator.account_settings.UserProfileInteractor;
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
-import ai.rideos.android.common.user_storage.StorageKeys;
-import ai.rideos.android.common.user_storage.UserStorageReader;
 import com.auth0.android.result.UserProfile;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.SingleSubject;
+import java.util.concurrent.TimeUnit;
 import timber.log.Timber;
 
 public class DefaultNavigationHeaderViewModel implements NavigationHeaderViewModel {
+    private static final int DEFAULT_POLLING_INTERVAL_MILLIS = 3000;
     private static final int RETRY_COUNT = 3;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final SingleSubject<UserProfile> userProfileSubject = SingleSubject.create();
 
+    private final User user;
+    private final UserProfileInteractor userProfileInteractor;
     private final SchedulerProvider schedulerProvider;
-    private final UserStorageReader userStorageReader;
 
-    public DefaultNavigationHeaderViewModel(final User user, final UserStorageReader userStorageReader) {
-        this(user, userStorageReader, new DefaultSchedulerProvider());
+    public DefaultNavigationHeaderViewModel(final User user,
+                                            final UserProfileInteractor userProfileInteractor) {
+        this(user, userProfileInteractor, new DefaultSchedulerProvider());
     }
 
     public DefaultNavigationHeaderViewModel(final User user,
-                                            final UserStorageReader userStorageReader,
+                                            final UserProfileInteractor userProfileInteractor,
                                             final SchedulerProvider schedulerProvider) {
-        this.userStorageReader = userStorageReader;
+        this.user = user;
+        this.userProfileInteractor = userProfileInteractor;
         this.schedulerProvider = schedulerProvider;
         compositeDisposable.add(
             user.fetchUserProfile()
@@ -60,7 +65,16 @@ public class DefaultNavigationHeaderViewModel implements NavigationHeaderViewMod
 
     @Override
     public Observable<String> getFullName() {
-        return userStorageReader.observeStringPreference(StorageKeys.PREFERRED_NAME);
+        // Poll for the full name since it may change periodically
+        return Observable.interval(0, DEFAULT_POLLING_INTERVAL_MILLIS, TimeUnit.MILLISECONDS, schedulerProvider.io())
+            .flatMapSingle(tick ->
+                userProfileInteractor.getUserProfile(user.getId())
+                    .map(ai.rideos.android.common.model.UserProfile::getPreferredName)
+                    .map(Result::success)
+                    .onErrorReturn(Result::failure)
+            )
+            .filter(Result::isSuccess)
+            .map(Result::get);
     }
 
     @Override

@@ -27,7 +27,6 @@ import ai.rideos.android.common.model.map.DrawableMarker.Anchor;
 import ai.rideos.android.common.model.map.DrawablePath;
 import ai.rideos.android.common.model.map.LatLngBounds;
 import ai.rideos.android.common.model.map.MapSettings;
-import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.common.utils.Markers;
@@ -35,8 +34,11 @@ import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
+import ai.rideos.android.driver_app.online.DefaultOnTripViewModel;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.StringRes;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -45,9 +47,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import timber.log.Timber;
 
-public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewModel {
+public class DefaultConfirmingArrivalViewModel extends DefaultOnTripViewModel implements ConfirmingArrivalViewModel {
     private static final int RETRY_COUNT = 2;
     private static final int POLL_INTERVAL_MILLIS = 1000;
 
@@ -58,6 +59,7 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     private final SchedulerProvider schedulerProvider;
     private final Waypoint waypoint;
     private final LatLng destination;
+    @DrawableRes
     private final int drawableDestinationPin;
     private final ResourceProvider resourceProvider;
     private final BehaviorSubject<LocationAndHeading> currentLocation = BehaviorSubject.create();
@@ -66,18 +68,20 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
                                              final DriverVehicleInteractor vehicleInteractor,
                                              final User user,
-                                             final Waypoint waypoint,
-                                             final int drawableDestinationPin,
                                              final DeviceLocator deviceLocator,
-                                             final ResourceProvider resourceProvider) {
+                                             final ResourceProvider resourceProvider,
+                                             final Waypoint waypoint,
+                                             @DrawableRes final int drawableDestinationPin,
+                                             @StringRes final int passengerDetailTemplate) {
         this(
             geocodeInteractor,
             vehicleInteractor,
             user,
-            waypoint,
-            drawableDestinationPin,
             deviceLocator,
             resourceProvider,
+            waypoint,
+            drawableDestinationPin,
+            passengerDetailTemplate,
             new DefaultSchedulerProvider()
         );
     }
@@ -85,11 +89,14 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     public DefaultConfirmingArrivalViewModel(final GeocodeInteractor geocodeInteractor,
                                              final DriverVehicleInteractor vehicleInteractor,
                                              final User user,
-                                             final Waypoint waypoint,
-                                             final int drawableDestinationPin,
                                              final DeviceLocator deviceLocator,
                                              final ResourceProvider resourceProvider,
+                                             final Waypoint waypoint,
+                                             @DrawableRes final int drawableDestinationPin,
+                                             @StringRes final int passengerDetailTemplate,
                                              final SchedulerProvider schedulerProvider) {
+        super(geocodeInteractor, waypoint, resourceProvider, passengerDetailTemplate, schedulerProvider);
+
         this.geocodeInteractor = geocodeInteractor;
         this.vehicleInteractor = vehicleInteractor;
         this.user = user;
@@ -102,21 +109,6 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
         compositeDisposable.add(
             deviceLocator.observeCurrentLocation(POLL_INTERVAL_MILLIS).subscribe(currentLocation::onNext)
         );
-    }
-
-    @Override
-    public Observable<String> getArrivalDetailText() {
-        return geocodeInteractor.getBestReverseGeocodeResult(destination)
-            .observeOn(schedulerProvider.computation())
-            .retry(RETRY_COUNT)
-            .doOnError(error -> Timber.e(error, "Failed to geocode location"))
-            .onErrorReturn(Result::failure)
-            .map(result -> {
-                if (result.isFailure()) {
-                    return "";
-                }
-                return result.get().getDisplayName();
-            });
     }
 
     @Override
@@ -179,5 +171,6 @@ public class DefaultConfirmingArrivalViewModel implements ConfirmingArrivalViewM
     @Override
     public void destroy() {
         compositeDisposable.dispose();
+        vehicleInteractor.shutDown();
     }
 }

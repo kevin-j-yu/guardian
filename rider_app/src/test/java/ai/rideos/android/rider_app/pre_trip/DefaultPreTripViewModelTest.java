@@ -44,7 +44,7 @@ import org.mockito.Mockito;
 public class DefaultPreTripViewModelTest {
     private static final String FLEET_ID = "fleet-1";
     private static final String PASSENGER_ID = "passenger-1";
-    private static final ContactInfo CONTACT_INFO = new ContactInfo("Passenger 1");
+    private static final ContactInfo CONTACT_INFO = new ContactInfo("Passenger 1", "111-222-3333");
     private static final String TASK_ID = "task-1";
 
     private static final TaskLocation PICKUP = new TaskLocation(new LatLng(0, 1));
@@ -78,6 +78,7 @@ public class DefaultPreTripViewModelTest {
         userStorageReader = Mockito.mock(UserStorageReader.class);
         Mockito.when(userStorageReader.getBooleanPreference(RiderStorageKeys.MANUAL_VEHICLE_SELECTION)).thenReturn(false);
         Mockito.when(userStorageReader.getStringPreference(StorageKeys.PREFERRED_NAME)).thenReturn(CONTACT_INFO.getName());
+        Mockito.when(userStorageReader.getStringPreference(StorageKeys.PHONE_NUMBER)).thenReturn(CONTACT_INFO.getPhoneNumber());
 
         user = Mockito.mock(User.class);
         Mockito.when(user.getId()).thenReturn(PASSENGER_ID);
@@ -234,7 +235,7 @@ public class DefaultPreTripViewModelTest {
         Mockito.when(userProfile.getEmail()).thenReturn(userEmail);
         Mockito.when(user.fetchUserProfile()).thenReturn(Single.just(userProfile));
 
-        final ContactInfo expectedContact = new ContactInfo(userEmail);
+        final ContactInfo expectedContact = new ContactInfo(userEmail, CONTACT_INFO.getPhoneNumber());
         Mockito.when(tripInteractor.createTripForPassenger(PASSENGER_ID, expectedContact, FLEET_ID, NUM_PASSENGERS, PICKUP, DROP_OFF))
             .thenReturn(Observable.just(TASK_ID));
 

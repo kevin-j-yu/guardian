@@ -1,0 +1,30 @@
+<!--
+
+    Copyright 2018-2019 rideOS, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="139dp"
+    android:height="44dp"
+    android:viewportWidth="139"
+    android:viewportHeight="44">
+  <path
+      android:pathData="M139,22C139,9.85 129.15,0 117,0H22C9.85,0 0,9.85 0,22C0,34.15 9.85,44 22,44H117C129.15,44 139,34.15 139,22Z"
+      android:fillColor="#00D7DB"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M40.4,16.815C36.847,16.815 34.623,19.197 34.623,23.015C34.623,26.825 36.847,29.208 40.4,29.208C43.944,29.208 46.177,26.825 46.177,23.015C46.177,19.197 43.944,16.815 40.4,16.815ZM40.4,18.906C42.359,18.906 43.612,20.5 43.612,23.015C43.612,25.522 42.359,27.107 40.4,27.107C38.433,27.107 37.179,25.522 37.179,23.015C37.179,20.5 38.441,18.906 40.4,18.906ZM51.215,29V21.156H51.29L56.893,29H58.968V17.022H56.569V24.825H56.502L50.908,17.022H48.816V29H51.215ZM71.749,29V19.089H75.219V17.022H65.781V19.089H69.242V29H71.749ZM80.132,18.981H82.265C83.51,18.981 84.29,19.728 84.29,20.89C84.29,22.077 83.552,22.799 82.29,22.799H80.132V18.981ZM80.132,24.617H82.141L84.373,29H87.212L84.689,24.244C86.067,23.704 86.864,22.376 86.864,20.84C86.864,18.475 85.286,17.022 82.531,17.022H77.625V29H80.132V24.617ZM92.042,29V17.022H89.535V29H92.042ZM95.055,17.022V29H97.561V25.223H99.803C102.326,25.223 104.078,23.58 104.078,21.123C104.078,18.657 102.384,17.022 99.927,17.022H95.055ZM97.561,19.006H99.263C100.699,19.006 101.529,19.77 101.529,21.131C101.529,22.5 100.691,23.264 99.255,23.264H97.561V19.006Z"
+      android:fillColor="#ffffff"/>
+</vector>

@@ -24,10 +24,14 @@ import android.location.Location;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.schedulers.Schedulers;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -124,6 +128,92 @@ public class FusedLocationDeviceLocatorTest {
         final Disposable disposable = observableLocation.subscribeOn(Schedulers.trampoline()).subscribe();
         disposable.dispose();
         Mockito.verify(client).removeLocationUpdates(any(LocationCallback.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLastKnownLocationWhenLocationExists() {
+        final ArgumentCaptor<OnSuccessListener> onSuccessCaptor = ArgumentCaptor.forClass(OnSuccessListener.class);
+        final Task<Location> mockTask = (Task<Location>) Mockito.mock(Task.class);
+
+        Mockito.when(mockTask.addOnSuccessListener(onSuccessCaptor.capture())).thenReturn(mockTask);
+        Mockito.when(mockTask.addOnFailureListener(Mockito.any())).thenReturn(mockTask);
+        Mockito.when(client.getLastLocation()).thenReturn(mockTask);
+
+        final Location location = mockLocation(LAT_LNG_1, 10.0f);
+
+        final TestObserver<LocationAndHeading> testObserver = locatorUnderTest.getLastKnownLocation().test();
+
+        onSuccessCaptor.getValue().onSuccess(location);
+        testObserver.assertValueCount(1)
+            .assertValueAt(0, new LocationAndHeading(LAT_LNG_1, 10.0f));
+        Mockito.verify(client, Mockito.never()).requestLocationUpdates(any(), any(), any());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLastKnownLocationFallsBackToLocationUpdatesWhenLastLocationUnknown() {
+        final ArgumentCaptor<OnSuccessListener> onSuccessCaptor = ArgumentCaptor.forClass(OnSuccessListener.class);
+        final Task<Location> mockTask = (Task<Location>) Mockito.mock(Task.class);
+
+        Mockito.when(mockTask.addOnSuccessListener(onSuccessCaptor.capture())).thenReturn(mockTask);
+        Mockito.when(mockTask.addOnFailureListener(Mockito.any())).thenReturn(mockTask);
+        Mockito.when(client.getLastLocation()).thenReturn(mockTask);
+
+        final ArgumentCaptor<LocationCallback> callbackCaptor = ArgumentCaptor.forClass(LocationCallback.class);
+
+        final Location mockLocation = mockLocation(LAT_LNG_1, 10.0f);
+
+        // Try to get last known location
+        final TestObserver<LocationAndHeading> testObserver = locatorUnderTest.getLastKnownLocation().test();
+
+        // Send null as last known location
+        onSuccessCaptor.getValue().onSuccess(null);
+        // Assert that no value should appear in the observer
+        testObserver.assertValueCount(0);
+
+        // Assert that location updates have started
+        Mockito.verify(client).requestLocationUpdates(any(), callbackCaptor.capture(), any());
+        // Get the location update callback and send a location
+        final LocationCallback callback = callbackCaptor.getValue();
+        callback.onLocationResult(LocationResult.create(Collections.singletonList(mockLocation)));
+
+        // Assert that this location is received
+        testObserver.assertValueCount(1)
+            .assertValueAt(0, new LocationAndHeading(LAT_LNG_1, 10.0f));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetLastKnownLocationFallsBackToLocationUpdatesWhenLastLocationErrors() {
+        final ArgumentCaptor<OnFailureListener> onFailureCaptor = ArgumentCaptor.forClass(OnFailureListener.class);
+        final Task<Location> mockTask = (Task<Location>) Mockito.mock(Task.class);
+
+        Mockito.when(mockTask.addOnSuccessListener(Mockito.any())).thenReturn(mockTask);
+        Mockito.when(mockTask.addOnFailureListener(onFailureCaptor.capture())).thenReturn(mockTask);
+        Mockito.when(client.getLastLocation()).thenReturn(mockTask);
+
+        final ArgumentCaptor<LocationCallback> callbackCaptor = ArgumentCaptor.forClass(LocationCallback.class);
+
+        final Location mockLocation = mockLocation(LAT_LNG_1, 10.0f);
+
+        // Try to get last known location
+        final TestObserver<LocationAndHeading> testObserver = locatorUnderTest.getLastKnownLocation().test();
+
+        // Send error to failure callback
+        onFailureCaptor.getValue().onFailure(new IOException());
+        // Assert that no value should appear in the observer
+        testObserver.assertValueCount(0);
+
+        // Assert that location updates have started
+        Mockito.verify(client).requestLocationUpdates(any(), callbackCaptor.capture(), any());
+        // Get the location update callback and send a location
+        final LocationCallback callback = callbackCaptor.getValue();
+        callback.onLocationResult(LocationResult.create(Collections.singletonList(mockLocation)));
+
+        // Assert that this location is received
+        testObserver.assertValueCount(1)
+            .assertValueAt(0, new LocationAndHeading(LAT_LNG_1, 10.0f));
     }
 
     private static Location mockLocation(final LatLng latLng, final float heading) {

@@ -24,13 +24,9 @@ import ai.rideos.android.common.interactors.FleetInteractor;
 import ai.rideos.android.common.interactors.RideOsRouteInteractor;
 import android.content.Context;
 
-public class DefaultCommonDependencyFactory implements CommonDependencyFactory {
+public abstract class DefaultCommonDependencyFactory implements CommonDependencyFactory {
     public FleetInteractor getFleetInteractor(final Context context) {
         return new DefaultFleetInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
-    }
-
-    public RideOsRouteInteractor getRouteInteractor(final Context context) {
-        return new RideOsRouteInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
     }
 
     @Override

@@ -16,34 +16,44 @@
     limitations under the License.
 
 -->
-<FrameLayout
+<androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/preregistration_frame"
+        xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         tools:ignore="MissingPrefix"
-        android:layout_height="150dp" android:layout_gravity="bottom">
+        android:layout_gravity="bottom"
+        android:background="?attr/rideos.primary_background_color"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:transitionName="detail_view">
+    <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:srcCompat="@drawable/ic_alert_circle"
+            android:id="@+id/circle_alert_image"
+            app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="35dp" android:layout_marginStart="32dp"
+            app:layout_constraintStart_toStartOf="parent"/>
+    <TextView
+            android:text="@string/pre_registration_information_text"
+            android:id="@+id/pre_registration_information_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="textStart"
+            android:textColor="?attr/rideos.primary_text_color"
+            android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/circle_alert_image" android:layout_marginStart="16dp"
+            android:layout_marginTop="32dp" android:layout_marginEnd="24dp" app:layout_constraintEnd_toEndOf="parent"/>
+    <Button
+            android:layout_width="0dp"
+            android:layout_height="55dp" android:id="@+id/start_registration_button"
+            android:background="@drawable/action_button_background_color"
+            android:text="@string/start_registration_button_text"
+            android:textColor="?attr/rideos.action_button_text_color"
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:textAllCaps="false" android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:layout_marginTop="35dp" app:layout_constraintTop_toBottomOf="@+id/circle_alert_image"/>
 
-    <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="bottom" android:elevation="10dp"
-            android:backgroundTint="?attr/rideos.primary_background_color">
-        <Button
-                android:text="@string/start_registration_button_text"
-                android:layout_width="250dp"
-                android:layout_height="55dp" android:id="@+id/start_registration_button"
-                android:layout_gravity="bottom|center_horizontal"
-                style="@style/DefaultActionButtonStyle" android:layout_marginBottom="10dp"/>
-        <TextView
-                android:text="@string/pre_registration_information_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAlignment="center"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:layout_gravity="top|center_horizontal" android:layout_marginTop="15dp"
-                android:textColor="?attr/rideos.primary_text_color" android:textSize="16sp"/>
-    </androidx.cardview.widget.CardView>
-
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

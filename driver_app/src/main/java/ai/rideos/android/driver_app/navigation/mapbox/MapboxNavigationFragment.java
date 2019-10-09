@@ -15,6 +15,7 @@
  */
 package ai.rideos.android.driver_app.navigation.mapbox;
 
+import ai.rideos.android.common.app.MetadataReader;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.device.DeviceLocator;
@@ -31,6 +32,7 @@ import ai.rideos.android.driver_app.navigation.DefaultExternalRouteNavigationVie
 import ai.rideos.android.driver_app.navigation.ExternalRouteNavigationViewModel;
 import ai.rideos.android.driver_app.navigation.NavigationDoneListener;
 import ai.rideos.android.driver_app.navigation.mapbox.MapboxNavigationFragment.NavigationArgs;
+import ai.rideos.android.settings.DriverMetadataKeys;
 import ai.rideos.android.settings.DriverStorageKeys;
 import android.content.DialogInterface;
 import android.location.Location;
@@ -59,11 +61,9 @@ public class MapboxNavigationFragment extends FragmentViewController<NavigationA
     implements RouteListener, NavigationListener, ProgressChangeListener {
     public static class NavigationArgs implements Serializable {
         private final LatLng destination;
-        private final boolean useExternalRouting;
 
-        public NavigationArgs(final LatLng destination, final boolean useExternalRouting) {
+        public NavigationArgs(final LatLng destination) {
             this.destination = destination;
-            this.useExternalRouting = useExternalRouting;
         }
     }
 
@@ -102,12 +102,18 @@ public class MapboxNavigationFragment extends FragmentViewController<NavigationA
             new MapboxApiInteractor(getContext())
         );
 
-        if (getArgs().useExternalRouting) {
+        if (shouldUseExternalRouting()) {
             externalNavViewModel = new DefaultExternalRouteNavigationViewModel(
                 DriverDependencyRegistry.driverDependencyFactory().getRouteInteractor(getContext()),
                 new FusedLocationDeviceLocator(getContext())
             );
         }
+    }
+
+    private boolean shouldUseExternalRouting() {
+        return new MetadataReader(getContext())
+            .getBooleanMetadata(DriverMetadataKeys.USE_EXTERNAL_ROUTING_FOR_NAV)
+            .getOrDefault(false);
     }
 
     @Override

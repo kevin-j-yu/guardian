@@ -45,6 +45,8 @@
         <item name="rideos.settings_heading_color">@color/settings_header_blue</item>
         <item name="rideos.settings_sub_heading_color">@color/settings_sub_header_gray</item>
         <item name="rideos.error_font_color">@color/error_red</item>
+        <item name="rideos.tool_tip_background_color">@color/tooltip_gray</item>
+        <item name="rideos.tool_tip_font_color">@color/white</item>
         <item name="android:navigationBarColor">@color/bottom_nav_bar_gray</item>
     </style>
 

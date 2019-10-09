@@ -15,14 +15,19 @@
  */
 package ai.rideos.android.common.app.menu_navigator.account_settings;
 
+import ai.rideos.android.common.viewmodel.ViewModel;
 import io.reactivex.Observable;
 
-public interface AccountSettingsViewModel {
+public interface AccountSettingsViewModel extends ViewModel {
     void save();
 
     void editPreferredName(final String preferredName);
 
+    void editPhoneNumber(final String phoneNumber);
+
     Observable<String> getPreferredName();
+
+    Observable<String> getPhoneNumber();
 
     Observable<String> getEmail();
 

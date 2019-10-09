@@ -106,6 +106,11 @@ public class IdleFragment extends FragmentViewController<EmptyArg, GoOfflineList
     public void onStop() {
         super.onStop();
         compositeDisposable.dispose();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
         idleViewModel.destroy();
     }
 }

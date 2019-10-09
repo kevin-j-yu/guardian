@@ -56,6 +56,7 @@ public class TripDetailsFragment extends FragmentViewController<TripDetailsArgs,
         super.onCreate(savedInstanceState);
         viewModel = new DefaultTripDetailsViewModel(
             DriverDependencyRegistry.driverDependencyFactory().getDriverVehicleInteractor(getContext()),
+            DriverDependencyRegistry.mapDependencyFactory().getGeocodeInteractor(getContext()),
             User.get(getContext()),
             getArgs().vehiclePlan
         );
@@ -98,6 +99,11 @@ public class TripDetailsFragment extends FragmentViewController<TripDetailsArgs,
     public void onStop() {
         super.onStop();
         compositeDisposable.dispose();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
         viewModel.destroy();
     }
 }

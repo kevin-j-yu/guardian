@@ -18,6 +18,7 @@ package ai.rideos.android.model;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.RouteInfoModel;
+import ai.rideos.android.common.model.VehicleInfo;
 import androidx.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;

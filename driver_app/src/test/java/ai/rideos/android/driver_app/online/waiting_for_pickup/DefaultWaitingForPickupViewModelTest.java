@@ -15,19 +15,19 @@
  */
 package ai.rideos.android.driver_app.online.waiting_for_pickup;
 
-import static junit.framework.TestCase.assertEquals;
-
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.DeviceLocator;
+import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.map.CameraUpdate;
 import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
+import ai.rideos.android.common.user_storage.UserStorageReader;
+import ai.rideos.android.common.user_storage.UserStorageWriter;
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
-import ai.rideos.android.driver_app.R;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
 import ai.rideos.android.model.TripResourceInfo;
 import ai.rideos.android.model.VehiclePlan.Action;
@@ -52,15 +52,10 @@ public class DefaultWaitingForPickupViewModelTest {
 
     private DefaultWaitingForPickupViewModel viewModelUnderTest;
     private DriverVehicleInteractor vehicleInteractor;
-    private ResourceProvider resourceProvider;
 
     @Before
     public void setUp() {
-        setUpWithTripResource(TRIP_RESOURCE);
-    }
-
-    private void setUpWithTripResource(final TripResourceInfo tripResourceInfo) {
-        resourceProvider = Mockito.mock(ResourceProvider.class);
+        final ResourceProvider resourceProvider = Mockito.mock(ResourceProvider.class);
         Mockito.when(resourceProvider.getDrawableId(Mockito.anyInt())).thenReturn(DRAWABLE_PIN);
 
         final DeviceLocator deviceLocator = Mockito.mock(DeviceLocator.class);
@@ -73,34 +68,20 @@ public class DefaultWaitingForPickupViewModelTest {
 
         viewModelUnderTest = new DefaultWaitingForPickupViewModel(
             vehicleInteractor,
+            Mockito.mock(GeocodeInteractor.class),
             user,
             new Waypoint(
                 "trip-1",
                 Collections.singletonList("step-1"),
-                new Action(PICKUP_LOCATION, ActionType.LOAD_RESOURCE, tripResourceInfo)
+                new Action(PICKUP_LOCATION, ActionType.LOAD_RESOURCE, TRIP_RESOURCE)
             ),
             resourceProvider,
             deviceLocator,
+            Mockito.mock(UserStorageReader.class),
+            Mockito.mock(UserStorageWriter.class),
+            Mockito.mock(WaitingForPickupListener.class),
             new TrampolineSchedulerProvider()
         );
-    }
-
-    @Test
-    public void getPassengerTextWithSingleRider() {
-        setUpWithTripResource(new TripResourceInfo(1, "Single Rider"));
-        Mockito.when(resourceProvider.getString(Mockito.eq(R.string.waiting_for_pickup_title_format), Mockito.anyString()))
-            .thenAnswer(invocation -> invocation.getArguments()[1]);
-
-        assertEquals("Single Rider", viewModelUnderTest.getPassengersToPickupText());
-    }
-
-    @Test
-    public void getPassengerTextWithMultipleRiders() {
-        setUpWithTripResource(new TripResourceInfo(4, "Multi Rider"));
-        Mockito.when(resourceProvider.getString(Mockito.eq(R.string.waiting_for_pickup_title_format), Mockito.anyString()))
-            .thenAnswer(invocation -> invocation.getArguments()[1]);
-
-        assertEquals("Multi Rider + 3", viewModelUnderTest.getPassengersToPickupText());
     }
 
     @Test

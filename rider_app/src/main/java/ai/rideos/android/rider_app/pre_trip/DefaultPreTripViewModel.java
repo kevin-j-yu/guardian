@@ -40,6 +40,7 @@ import ai.rideos.android.model.VehicleSelectionOption;
 import ai.rideos.android.model.VehicleSelectionOption.SelectionType;
 import ai.rideos.android.settings.RiderStorageKeys;
 import androidx.core.util.Pair;
+import com.auth0.android.result.UserProfile;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
@@ -365,12 +366,20 @@ public class DefaultPreTripViewModel implements PreTripViewModel {
     }
 
     private Single<ContactInfo> observeContactInfo(final User user) {
+        return Single.zip(
+            observeUserName(user),
+            Single.just(userStorageReader.getStringPreference(StorageKeys.PHONE_NUMBER)),
+            ContactInfo::new
+        );
+    }
+
+    private Single<String> observeUserName(final User user) {
         final String userName = userStorageReader.getStringPreference(StorageKeys.PREFERRED_NAME);
         if (!userName.isEmpty()) {
-            return Single.just(new ContactInfo(userName));
+            return Single.just(userName);
         }
         return user.fetchUserProfile()
-            .map(userProfile -> new ContactInfo(userProfile.getEmail()))
-            .onErrorReturnItem(new ContactInfo(""));
+            .map(UserProfile::getEmail)
+            .onErrorReturnItem("");
     }
 }

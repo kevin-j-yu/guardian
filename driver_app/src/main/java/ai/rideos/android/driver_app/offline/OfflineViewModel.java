@@ -18,6 +18,7 @@ package ai.rideos.android.driver_app.offline;
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 public interface OfflineViewModel extends ViewModel {
     enum OfflineViewState {
@@ -28,6 +29,8 @@ public interface OfflineViewModel extends ViewModel {
     }
 
     Observable<ProgressState> getGoingOnlineProgress();
+
+    Single<Boolean> shouldShowTutorial();
 
     void goOnline();
 }

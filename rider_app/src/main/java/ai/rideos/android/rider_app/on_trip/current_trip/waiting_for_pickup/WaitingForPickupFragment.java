@@ -22,7 +22,7 @@ import ai.rideos.android.common.model.NamedTaskLocation;
 import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.common.view.resources.AndroidResourceProvider;
 import ai.rideos.android.model.TripStateModel;
-import ai.rideos.android.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.on_trip.current_trip.CancelDialog;
 import ai.rideos.android.rider_app.on_trip.current_trip.PassengerStateObserver;

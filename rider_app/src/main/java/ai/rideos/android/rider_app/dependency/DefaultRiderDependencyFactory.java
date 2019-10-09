@@ -21,22 +21,26 @@ import ai.rideos.android.common.app.dependency.DefaultCommonDependencyFactory;
 import ai.rideos.android.common.app.menu_navigator.DefaultMenuOptions;
 import ai.rideos.android.common.app.menu_navigator.MenuOptionFragmentRegistry;
 import ai.rideos.android.common.app.menu_navigator.account_settings.AccountSettingsFragment;
+import ai.rideos.android.common.app.menu_navigator.account_settings.UserProfileInteractor;
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.grpc.ChannelProvider;
+import ai.rideos.android.common.interactors.RideOsRouteInteractor;
+import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.MenuOption;
 import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageReader;
 import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageWriter;
 import ai.rideos.android.interactors.AvailableVehicleInteractor;
 import ai.rideos.android.interactors.DefaultAvailableVehicleInteractor;
 import ai.rideos.android.interactors.DefaultPreviewVehicleInteractor;
-import ai.rideos.android.interactors.DefaultStopInteractor;
 import ai.rideos.android.interactors.DefaultRiderTripInteractor;
 import ai.rideos.android.interactors.DefaultRiderTripStateInteractor;
+import ai.rideos.android.interactors.DefaultStopInteractor;
 import ai.rideos.android.interactors.HistoricalSearchInteractor;
 import ai.rideos.android.interactors.PreviewVehicleInteractor;
-import ai.rideos.android.interactors.StopInteractor;
 import ai.rideos.android.interactors.RiderTripInteractor;
 import ai.rideos.android.interactors.RiderTripStateInteractor;
+import ai.rideos.android.interactors.RiderUserProfileInteractor;
+import ai.rideos.android.interactors.StopInteractor;
 import ai.rideos.android.interactors.UserStorageHistoricalSearchInteractor;
 import ai.rideos.android.rider_app.MainFragment;
 import ai.rideos.android.rider_app.R;
@@ -109,5 +113,18 @@ public class DefaultRiderDependencyFactory extends DefaultCommonDependencyFactor
             );
         }
         return registry;
+    }
+
+    @Override
+    public UserProfileInteractor getUserProfileInteractor(final Context context) {
+        return new RiderUserProfileInteractor(
+            SharedPreferencesUserStorageReader.forContext(context),
+            SharedPreferencesUserStorageWriter.forContext(context)
+        );
+    }
+
+    @Override
+    public RouteInteractor getRouteInteractor(final Context context) {
+        return new RideOsRouteInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
     }
 }

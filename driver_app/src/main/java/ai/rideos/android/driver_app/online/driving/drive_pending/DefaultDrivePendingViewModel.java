@@ -16,6 +16,7 @@
 package ai.rideos.android.driver_app.online.driving.drive_pending;
 
 import ai.rideos.android.common.device.DeviceLocator;
+import ai.rideos.android.common.interactors.GeocodeInteractor;
 import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
@@ -33,8 +34,11 @@ import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProv
 import ai.rideos.android.common.utils.Markers;
 import ai.rideos.android.common.utils.Paths;
 import ai.rideos.android.common.view.resources.ResourceProvider;
-import ai.rideos.android.common.view.strings.RouteFormatter;
 import ai.rideos.android.driver_app.R;
+import ai.rideos.android.driver_app.online.DefaultOnTripViewModel;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.StringRes;
 import androidx.core.util.Pair;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -46,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import timber.log.Timber;
 
-public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
+public class DefaultDrivePendingViewModel extends DefaultOnTripViewModel implements DrivePendingViewModel {
     private static final int RETRY_COUNT = 2;
     private static final float PATH_WIDTH = 10.0f;
 
@@ -59,48 +63,44 @@ public class DefaultDrivePendingViewModel implements DrivePendingViewModel {
     private final ResourceProvider resourceProvider;
     private final LatLng destination;
     private final int drawableDestinationPin;
-    private final RouteFormatter routeFormatter;
 
     public DefaultDrivePendingViewModel(final DeviceLocator deviceLocator,
                                         final RouteInteractor routeInteractor,
+                                        final GeocodeInteractor geocodeInteractor,
                                         final ResourceProvider resourceProvider,
-                                        final LatLng destination,
-                                        final int drawableDestinationPin) {
+                                        final Waypoint nextWaypoint,
+                                        @DrawableRes final int drawableDestinationPin,
+                                        @StringRes final int passengerDetailTemplate) {
         this(
             deviceLocator,
             routeInteractor,
+            geocodeInteractor,
             resourceProvider,
-            destination,
+            nextWaypoint,
             drawableDestinationPin,
-            new DefaultSchedulerProvider(),
-            new RouteFormatter(resourceProvider)
+            passengerDetailTemplate,
+            new DefaultSchedulerProvider()
         );
     }
 
     public DefaultDrivePendingViewModel(final DeviceLocator deviceLocator,
                                         final RouteInteractor routeInteractor,
+                                        final GeocodeInteractor geocodeInteractor,
                                         final ResourceProvider resourceProvider,
-                                        final LatLng destination,
-                                        final int drawableDestinationPin,
-                                        final SchedulerProvider schedulerProvider,
-                                        final RouteFormatter routeFormatter) {
+                                        final Waypoint nextWaypoint,
+                                        @DrawableRes final int drawableDestinationPin,
+                                        @StringRes final int passengerDetailTemplate,
+                                        final SchedulerProvider schedulerProvider) {
+        super(geocodeInteractor, nextWaypoint, resourceProvider, passengerDetailTemplate, schedulerProvider);
         this.routeInteractor = routeInteractor;
         this.schedulerProvider = schedulerProvider;
-        this.destination = destination;
+        this.destination = nextWaypoint.getAction().getDestination();
         this.resourceProvider = resourceProvider;
         this.drawableDestinationPin = drawableDestinationPin;
-        this.routeFormatter = routeFormatter;
         compositeDisposable.addAll(
             deviceLocator.getLastKnownLocation().subscribe(currentLocation::onNext),
             fetchRouteInfo().subscribe(routeInfoResult::onSuccess)
         );
-    }
-
-    @Override
-    public Observable<String> getRouteDetailText() {
-        return routeInfoResult.observeOn(schedulerProvider.computation())
-            .toObservable()
-            .map(routeFormatter::getDisplayStringForRouteResult);
     }
 
     @Override

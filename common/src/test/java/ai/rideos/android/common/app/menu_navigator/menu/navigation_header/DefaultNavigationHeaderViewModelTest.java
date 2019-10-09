@@ -15,28 +15,29 @@
  */
 package ai.rideos.android.common.app.menu_navigator.menu.navigation_header;
 
+import ai.rideos.android.common.app.menu_navigator.account_settings.UserProfileInteractor;
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
-import ai.rideos.android.common.user_storage.StorageKeys;
-import ai.rideos.android.common.user_storage.UserStorageReader;
 import com.auth0.android.result.UserProfile;
-import io.reactivex.Observable;
 import io.reactivex.Single;
+import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class DefaultNavigationHeaderViewModelTest {
+    private static final String USER_ID = "user-1";
     private static final String PICTURE_URL = "https://rideos.ai";
     private static final String EMAIL = "bot@rideos.ai";
 
     private DefaultNavigationHeaderViewModel viewModelUnderTest;
-    private UserStorageReader userStorageReader;
+    private UserProfileInteractor userProfileInteractor;
 
     @Before
     public void setUp() {
         final User user = Mockito.mock(User.class);
-        userStorageReader = Mockito.mock(UserStorageReader.class);
+        Mockito.when(user.getId()).thenReturn(USER_ID);
+        userProfileInteractor = Mockito.mock(UserProfileInteractor.class);
 
         final UserProfile userProfile = Mockito.mock(UserProfile.class);
         Mockito.when(userProfile.getPictureURL()).thenReturn(PICTURE_URL);
@@ -45,7 +46,7 @@ public class DefaultNavigationHeaderViewModelTest {
 
         viewModelUnderTest = new DefaultNavigationHeaderViewModel(
             user,
-            userStorageReader,
+            userProfileInteractor,
             new TrampolineSchedulerProvider()
         );
     }
@@ -57,12 +58,26 @@ public class DefaultNavigationHeaderViewModelTest {
     }
 
     @Test
-    public void testCanGetFullNameFromUserStorage() {
+    public void testCanGetFullNameFromUserProfile() {
         final String preferredName = "preferredName";
-        Mockito.when(userStorageReader.observeStringPreference(StorageKeys.PREFERRED_NAME))
-            .thenReturn(Observable.just(preferredName));
+        Mockito.when(userProfileInteractor.getUserProfile(USER_ID))
+            .thenReturn(Single.just(new ai.rideos.android.common.model.UserProfile(preferredName, "")));
 
-        viewModelUnderTest.getFullName().test()
+        viewModelUnderTest.getFullName().firstOrError()
+            .test()
+            .assertValueAt(0, preferredName);
+    }
+
+    @Test
+    public void testGettingFullNameNeverEmitsErrors() {
+        final String preferredName = "preferredName";
+        Mockito.when(userProfileInteractor.getUserProfile(USER_ID))
+            .thenReturn(Single.error(new IOException()))
+            .thenReturn(Single.just(new ai.rideos.android.common.model.UserProfile(preferredName, "")));
+
+        viewModelUnderTest.getFullName().firstOrError()
+            .test()
+            .assertNoErrors()
             .assertValueAt(0, preferredName);
     }
 

@@ -55,7 +55,7 @@ import org.mockito.Mockito;
 public class DefaultRiderTripInteractorTest {
     private static final String API_TOKEN = "token";
     private static final String PASSENGER_ID = "passenger-1";
-    private static final ContactInfo CONTACT_INFO = new ContactInfo("Passenger 1");
+    private static final ContactInfo CONTACT_INFO = new ContactInfo("Passenger 1", "111-222-3333");
     private static final String FLEET_ID = "fleet-1";
     private static final String TRIP_ID = "task-1";
     private static final LatLng ORIGIN = new LatLng(0, 0);
@@ -122,6 +122,7 @@ public class DefaultRiderTripInteractorTest {
                     RiderInfo.newBuilder().setContactInfo(
                         RideHailCommons.ContactInfo.newBuilder()
                             .setName(CONTACT_INFO.getName())
+                            .setPhoneNumber(CONTACT_INFO.getPhoneNumber())
                     )
                 )
             )
@@ -164,6 +165,7 @@ public class DefaultRiderTripInteractorTest {
                     RiderInfo.newBuilder().setContactInfo(
                         RideHailCommons.ContactInfo.newBuilder()
                             .setName(CONTACT_INFO.getName())
+                            .setPhoneNumber(CONTACT_INFO.getPhoneNumber())
                     )
                 )
             )

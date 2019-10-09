@@ -68,6 +68,9 @@ public class TripDetailsRecyclerAdapter extends RecyclerView.Adapter<TripDetails
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final TextView passengerTextView = holder.view.findViewById(R.id.trip_detail_passenger_name);
         final TextView actionButtonText = holder.view.findViewById(R.id.trip_detail_action_button);
+        final ViewGroup pickupSection = holder.view.findViewById(R.id.trip_detail_pickup_section);
+        final TextView pickupTextView = holder.view.findViewById(R.id.trip_detail_pickup_address);
+        final TextView dropOffTextView = holder.view.findViewById(R.id.trip_detail_drop_off_address);
         final View contactButton = holder.view.findViewById(R.id.contact_button);
         final TripDetail tripDetail = tripDetails.get(position);
 
@@ -83,6 +86,15 @@ public class TripDetailsRecyclerAdapter extends RecyclerView.Adapter<TripDetails
                     R.string.trip_detail_reject_alert_positive_button
                 ));
                 break;
+            case CANCEL_TRIP:
+                actionButtonText.setText(R.string.trip_detail_cancel_trip_action_button);
+                actionButtonText.setOnClickListener(click -> checkAndPerformAction(
+                    tripDetail,
+                    R.string.trip_detail_cancel_alert_title,
+                    R.string.trip_detail_cancel_alert_description,
+                    R.string.trip_detail_cancel_alert_positive_button
+                ));
+                break;
             case END_TRIP:
                 actionButtonText.setText(R.string.trip_detail_end_trip_action_button);
                 actionButtonText.setOnClickListener(click -> checkAndPerformAction(
@@ -93,6 +105,14 @@ public class TripDetailsRecyclerAdapter extends RecyclerView.Adapter<TripDetails
                 ));
                 break;
         }
+
+        if (tripDetail.getPickupAddress().isPresent()) {
+            pickupSection.setVisibility(View.VISIBLE);
+            pickupTextView.setText(tripDetail.getPickupAddress().get());
+        } else {
+            pickupSection.setVisibility(View.GONE);
+        }
+        dropOffTextView.setText(tripDetail.getDropOffAddress());
 
         if (tripDetail.getPassengerPhone().isPresent()) {
             final String phoneLink = String.format("tel:%s", tripDetail.getPassengerPhone().get());

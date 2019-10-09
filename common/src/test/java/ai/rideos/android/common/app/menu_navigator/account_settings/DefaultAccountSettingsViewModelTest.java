@@ -16,11 +16,9 @@
 package ai.rideos.android.common.app.menu_navigator.account_settings;
 
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.model.UserProfile;
 import ai.rideos.android.common.reactive.SchedulerProviders.TrampolineSchedulerProvider;
-import ai.rideos.android.common.user_storage.StorageKeys;
-import ai.rideos.android.common.user_storage.UserStorageReader;
-import ai.rideos.android.common.user_storage.UserStorageWriter;
-import com.auth0.android.result.UserProfile;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import org.junit.Before;
@@ -28,25 +26,29 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class DefaultAccountSettingsViewModelTest {
+    private static final String USER_ID = "user";
     private static final String PREFERRED_NAME = "preferred";
+    private static final String PHONE = "123-456-7890";
 
     private DefaultAccountSettingsViewModel viewModelUnderTest;
-    private UserStorageWriter userStorageWriter;
+    private UserProfileInteractor userProfileInteractor;
     private User user;
 
     @Before
     public void setUp() {
         user = Mockito.mock(User.class);
+        Mockito.when(user.getId()).thenReturn(USER_ID);
 
-        final UserStorageReader reader = Mockito.mock(UserStorageReader.class);
-        Mockito.when(reader.getStringPreference(StorageKeys.PREFERRED_NAME)).thenReturn(PREFERRED_NAME);
+        userProfileInteractor = Mockito.mock(UserProfileInteractor.class);
 
-        userStorageWriter = Mockito.mock(UserStorageWriter.class);
+        Mockito.when(userProfileInteractor.getUserProfile(USER_ID))
+            .thenReturn(Single.just(new UserProfile(PREFERRED_NAME, PHONE)));
+        Mockito.when(userProfileInteractor.storeUserProfile(Mockito.eq(USER_ID), Mockito.any()))
+            .thenReturn(Completable.complete());
 
         viewModelUnderTest = new DefaultAccountSettingsViewModel(
             user,
-            reader,
-            userStorageWriter,
+            userProfileInteractor,
             new TrampolineSchedulerProvider()
         );
     }
@@ -54,30 +56,39 @@ public class DefaultAccountSettingsViewModelTest {
     @Test
     public void testCanGetEmailFromProfile() {
         final String email = "email@email.com";
-        final UserProfile userProfile = Mockito.mock(UserProfile.class);
+        final com.auth0.android.result.UserProfile userProfile
+            = Mockito.mock(com.auth0.android.result.UserProfile.class);
         Mockito.when(userProfile.getEmail()).thenReturn(email);
         Mockito.when(user.fetchUserProfile()).thenReturn(Single.just(userProfile));
         viewModelUnderTest.getEmail().test().assertValueAt(0, email);
     }
 
     @Test
-    public void testCanGetPreferredNameFromUserStorage() {
+    public void testCanGetPreferredNameFromInteractor() {
         viewModelUnderTest.getPreferredName().test().assertValueAt(0, PREFERRED_NAME);
     }
 
     @Test
-    public void testCanSavePreferredNameAfterEditing() {
-        final String newName = "new name";
-        viewModelUnderTest.editPreferredName(newName);
-        viewModelUnderTest.save();
-        Mockito.verify(userStorageWriter).storeStringPreference(StorageKeys.PREFERRED_NAME, newName);
-        Mockito.verifyNoMoreInteractions(userStorageWriter);
+    public void testCanGetPhoneNumberFromInteractor() {
+        viewModelUnderTest.getPhoneNumber().test().assertValueAt(0, PHONE);
     }
 
     @Test
-    public void testSavingWithNoEditsDoesNotWriteAnything() {
+    public void testCanSavePreferredNameAndPhoneAfterEditing() {
+        final String newName = "new name";
+        final String newPhone = "111-222-3333";
+        viewModelUnderTest.editPreferredName(newName);
+        viewModelUnderTest.editPhoneNumber(newPhone);
         viewModelUnderTest.save();
-        Mockito.verifyNoMoreInteractions(userStorageWriter);
+        Mockito.verify(userProfileInteractor).storeUserProfile(USER_ID, new UserProfile(newName, newPhone));
+    }
+
+    @Test
+    public void testCanSavePreferredNameAndPhoneAndDefaultIfNotEdited() {
+        final String newName = "new name";
+        viewModelUnderTest.editPreferredName(newName);
+        viewModelUnderTest.save();
+        Mockito.verify(userProfileInteractor).storeUserProfile(USER_ID, new UserProfile(newName, PHONE));
     }
 
     @Test
@@ -105,6 +116,33 @@ public class DefaultAccountSettingsViewModelTest {
         final String newPreferred = "new given";
         final TestObserver<Boolean> testObserver = viewModelUnderTest.isSavingEnabled().test();
         viewModelUnderTest.editPreferredName(newPreferred);
+        viewModelUnderTest.save();
+        testObserver.assertValueCount(3)
+            .assertValueAt(0, false)
+            .assertValueAt(1, true)
+            .assertValueAt(2, false);
+    }
+
+    @Test
+    public void testSavingIsEnabledWhenPhoneNumberIsEdited() {
+        final String newPhone = "111-222-3333";
+        final TestObserver<Boolean> testObserver = viewModelUnderTest.isSavingEnabled().test();
+        viewModelUnderTest.editPhoneNumber(newPhone);
+        testObserver.assertValueCount(2).assertValueAt(1, true);
+    }
+
+    @Test
+    public void testSavingIsDisabledWhenEditedPhoneNumberIsTheSame() {
+        final TestObserver<Boolean> testObserver = viewModelUnderTest.isSavingEnabled().test();
+        viewModelUnderTest.editPhoneNumber(PHONE);
+        testObserver.assertValueCount(1).assertValueAt(0, false);
+    }
+
+    @Test
+    public void testSavingIsDisabledWhenEditedPhoneIsSaved() {
+        final String newPhone = "111-222-3333";
+        final TestObserver<Boolean> testObserver = viewModelUnderTest.isSavingEnabled().test();
+        viewModelUnderTest.editPhoneNumber(newPhone);
         viewModelUnderTest.save();
         testObserver.assertValueCount(3)
             .assertValueAt(0, false)

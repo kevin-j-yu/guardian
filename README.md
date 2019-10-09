@@ -67,11 +67,12 @@ Then, in the application's `AndroidManifest.xml` file, change the declaration of
 ### Feature Flags
 There are a few feature flags we expose for common customizations to the behavior of the app. These feature flags should be added as metadata values to the appropriate app.
 
-| Key Name                      | Application(s) | Values     | Description                                                                               |
-|-------------------------------|----------------|------------|-------------------------------------------------------------------------------------------|
-| `enable_developer_options`      | Rider & Driver | true/false | Enables the developer options menu item in the side menu                                  |
-| `rideos_disable_seat_selection` | Rider          | true/false | Disables the rider from selecting how many seats the trip requires                        |
-| `rideos_fixed_locations`        | Rider          | true/false | Forces the rider app to use discrete, fixed stop locations instead of normal coordinates. |
+| Key Name                              | Application(s) | Values     | Description                                                                               |
+|---------------------------------------|----------------|------------|-------------------------------------------------------------------------------------------|
+| `enable_developer_options`            | Rider & Driver | true/false | Enables the developer options menu item in the side menu                                  |
+| `rideos_disable_seat_selection`       | Rider          | true/false | Disables the rider from selecting how many seats the trip requires                        |
+| `rideos_fixed_locations`              | Rider          | true/false | Forces the rider app to use discrete, fixed stop locations instead of normal coordinates. |
+| `rideos_use_external_routing_for_nav` | Driver         | true/false | Forces the driver app to use an external routing provider and match to turn-by-turn nav   |
 
 ## Architecture
 

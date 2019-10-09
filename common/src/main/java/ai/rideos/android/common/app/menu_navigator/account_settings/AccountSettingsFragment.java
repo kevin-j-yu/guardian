@@ -16,15 +16,12 @@
 package ai.rideos.android.common.app.menu_navigator.account_settings;
 
 import ai.rideos.android.common.R;
+import ai.rideos.android.common.app.dependency.CommonDependencyRegistry;
 import ai.rideos.android.common.app.menu_navigator.OpenMenuListener;
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.device.InputMethodManagerKeyboardManager;
 import ai.rideos.android.common.device.KeyboardManager;
-import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageReader;
-import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageWriter;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -33,6 +30,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import java.util.function.Consumer;
@@ -48,8 +47,7 @@ public class AccountSettingsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         viewModel = new DefaultAccountSettingsViewModel(
             User.get(getContext()),
-            SharedPreferencesUserStorageReader.forContext(getContext()),
-            SharedPreferencesUserStorageWriter.forContext(getContext())
+            CommonDependencyRegistry.commonDependencyFactory().getUserProfileInteractor(getContext())
         );
         openMenuListener = (OpenMenuListener) getActivity();
     }
@@ -70,7 +68,9 @@ public class AccountSettingsFragment extends Fragment {
         final KeyboardManager keyboardManager = new InputMethodManagerKeyboardManager(getContext(), view);
 
         final EditText preferredNameText = view.findViewById(R.id.preferred_name_edit_text);
+        final EditText phoneNumberText = view.findViewById(R.id.phone_number_edit_text);
         listenToEditText(preferredNameText, viewModel::editPreferredName);
+        listenToEditText(phoneNumberText, viewModel::editPhoneNumber);
 
         final EditText emailText = view.findViewById(R.id.email_edit_text);
 
@@ -84,11 +84,13 @@ public class AccountSettingsFragment extends Fragment {
         saveButton.setOnClickListener(click -> {
             viewModel.save();
             preferredNameText.clearFocus();
+            phoneNumberText.clearFocus();
             keyboardManager.hideKeyboard();
         });
 
         compositeDisposable.addAll(
             viewModel.getPreferredName().observeOn(AndroidSchedulers.mainThread()).subscribe(preferredNameText::setText),
+            viewModel.getPhoneNumber().observeOn(AndroidSchedulers.mainThread()).subscribe(phoneNumberText::setText),
             viewModel.getEmail().observeOn(AndroidSchedulers.mainThread()).subscribe(emailText::setText),
             viewModel.isSavingEnabled().observeOn(AndroidSchedulers.mainThread()).subscribe(enabled -> {
                 if (enabled) {
@@ -123,5 +125,11 @@ public class AccountSettingsFragment extends Fragment {
     public void onStop() {
         super.onStop();
         compositeDisposable.dispose();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        viewModel.destroy();
     }
 }

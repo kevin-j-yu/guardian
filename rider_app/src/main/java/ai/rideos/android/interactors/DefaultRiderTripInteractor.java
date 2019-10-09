@@ -133,6 +133,7 @@ public class DefaultRiderTripInteractor
                         RiderInfo.newBuilder().setContactInfo(
                             RideHailCommons.ContactInfo.newBuilder()
                                 .setName(contactInfo.getName())
+                                .setPhoneNumber(contactInfo.getPhoneNumber())
                         )
                     )
                 )

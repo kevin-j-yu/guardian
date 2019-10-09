@@ -15,15 +15,18 @@
  */
 package ai.rideos.android.common.app.dependency;
 
+import ai.rideos.android.common.app.menu_navigator.account_settings.UserProfileInteractor;
 import ai.rideos.android.common.interactors.DeviceRegistryInteractor;
 import ai.rideos.android.common.interactors.FleetInteractor;
-import ai.rideos.android.common.interactors.RideOsRouteInteractor;
+import ai.rideos.android.common.interactors.RouteInteractor;
 import android.content.Context;
 
 public interface CommonDependencyFactory {
+    UserProfileInteractor getUserProfileInteractor(final Context context);
+
     FleetInteractor getFleetInteractor(final Context context);
 
-    RideOsRouteInteractor getRouteInteractor(final Context context);
+    RouteInteractor getRouteInteractor(final Context context);
 
     DeviceRegistryInteractor getDeviceRegistryInteractor(final Context context);
 }

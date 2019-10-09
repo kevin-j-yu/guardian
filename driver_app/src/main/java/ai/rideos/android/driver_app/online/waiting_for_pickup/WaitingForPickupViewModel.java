@@ -18,10 +18,14 @@ package ai.rideos.android.driver_app.online.waiting_for_pickup;
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
+import ai.rideos.android.driver_app.online.OnTripViewModel;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
-public interface WaitingForPickupViewModel extends MapStateProvider, ViewModel {
-    String getPassengersToPickupText();
+public interface WaitingForPickupViewModel extends MapStateProvider, ViewModel, OnTripViewModel {
+    void openTripDetails();
+
+    Single<Boolean> shouldShowTripDetailTutorial();
 
     void confirmPickup();
 

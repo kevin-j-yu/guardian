@@ -19,13 +19,13 @@ import ai.rideos.android.common.app.map.MapRelay;
 import ai.rideos.android.common.architecture.ControllerTypes;
 import ai.rideos.android.common.architecture.FragmentViewController;
 import ai.rideos.android.common.model.LatLng;
-import ai.rideos.android.common.view.layout.BottomDetailAndButtonView;
 import ai.rideos.android.common.view.resources.AndroidResourceProvider;
 import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
 import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
 import ai.rideos.android.driver_app.online.driving.drive_pending.DrivePendingFragment.DrivePendingArgs;
-import ai.rideos.android.view.ActionDetailView;
+import ai.rideos.android.model.VehiclePlan.Waypoint;
+import ai.rideos.android.view.HeaderAndBottomDetailView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,16 +42,16 @@ import java.io.Serializable;
 
 public class DrivePendingFragment extends FragmentViewController<DrivePendingArgs, DrivePendingListener> {
     public static class DrivePendingArgs implements Serializable {
-        private final int titleTextResourceId;
+        private final int passengerDetailTemplate;
         private final int drawableDestinationPinAttr;
-        private final LatLng destination;
+        private final Waypoint nextWaypoint;
 
-        public DrivePendingArgs(@StringRes final int titleTextResourceId,
+        public DrivePendingArgs(@StringRes final int passengerDetailTemplate,
                                 @AttrRes final int drawableDestinationPinAttr,
-                                final LatLng destination) {
-            this.titleTextResourceId = titleTextResourceId;
+                                final Waypoint nextWaypoint) {
+            this.passengerDetailTemplate = passengerDetailTemplate;
             this.drawableDestinationPinAttr = drawableDestinationPinAttr;
-            this.destination = destination;
+            this.nextWaypoint = nextWaypoint;
         }
     }
 
@@ -69,9 +69,11 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
         drivingViewModel = new DefaultDrivePendingViewModel(
             new PotentiallySimulatedDeviceLocator(getContext()),
             DriverDependencyRegistry.driverDependencyFactory().getRouteInteractor(getContext()),
+            DriverDependencyRegistry.mapDependencyFactory().getGeocodeInteractor(getContext()),
             AndroidResourceProvider.forContext(getContext()),
-            getArgs().destination,
-            AndroidResourceProvider.forContext(getContext()).getDrawableId(getArgs().drawableDestinationPinAttr)
+            getArgs().nextWaypoint,
+            AndroidResourceProvider.forContext(getContext()).getDrawableId(getArgs().drawableDestinationPinAttr),
+            getArgs().passengerDetailTemplate
         );
     }
 
@@ -79,9 +81,16 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final View view = BottomDetailAndButtonView.inflateWithMenuButton(inflater, container, getActivity(), R.layout.drive_pending);
-        final TextView titleText = view.findViewById(R.id.drive_pending_title);
-        titleText.setText(getArgs().titleTextResourceId);
+        final View view = HeaderAndBottomDetailView.inflate(
+            inflater,
+            container,
+            getActivity(),
+            R.layout.on_trip_header,
+            R.layout.on_trip_bottom_detail
+        );
+
+        final Button startNavButton = view.findViewById(R.id.on_trip_action_button);
+        startNavButton.setText(R.string.start_navigation_button_text);
         return view;
 
     }
@@ -91,19 +100,22 @@ public class DrivePendingFragment extends FragmentViewController<DrivePendingArg
         super.onStart();
         final View view = getView();
 
-        final Button startNavButton = view.findViewById(R.id.start_nav_button);
+        final Button startNavButton = view.findViewById(R.id.on_trip_action_button);
         startNavButton.setOnClickListener(click -> getListener().startNavigation());
 
-        final View expandDetailsButton = view.findViewById(R.id.expand_trip_details_button);
+        final TextView passengerDetail = view.findViewById(R.id.on_trip_passenger_detail);
+        passengerDetail.setText(drivingViewModel.getPassengerDetailText());
+
+        final View expandDetailsButton = view.findViewById(R.id.passenger_detail_row);
         expandDetailsButton.setOnClickListener(click -> getListener().openTripDetails());
 
-        final TextView detailText = view.findViewById(R.id.drive_pending_detail);
+        final TextView onTripAddress = view.findViewById(R.id.on_trip_address);
 
         final Disposable mapSubscription = MapRelay.get().connectToProvider(drivingViewModel);
 
-        final Disposable detailSubscription = drivingViewModel.getRouteDetailText()
+        final Disposable detailSubscription = drivingViewModel.getDestinationAddress()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(detailText::setText);
+            .subscribe(onTripAddress::setText);
 
         compositeDisposable = new CompositeDisposable();
         compositeDisposable.addAll(mapSubscription, detailSubscription);

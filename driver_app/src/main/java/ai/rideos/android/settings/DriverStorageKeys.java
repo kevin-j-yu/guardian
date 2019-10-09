@@ -20,5 +20,9 @@ import ai.rideos.android.common.user_storage.StorageKey;
 public class DriverStorageKeys {
     public static final StorageKey<Boolean> SIMULATE_NAVIGATION
         = new StorageKey<>("simulate_navigation", false);
+    public static final StorageKey<Boolean> ONLINE_TOGGLE_TUTORIAL_SHOWN
+        = new StorageKey<>("online_toggle_tutorial_shown", false);
+    public static final StorageKey<Boolean> TRIP_DETAIL_TUTORIAL_SHOWN
+        = new StorageKey<>("trip_detail_tutorial_shown", false);
 }
 

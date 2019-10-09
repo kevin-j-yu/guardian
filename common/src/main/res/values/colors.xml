@@ -37,4 +37,5 @@
     <color name="error_red">#FF6969</color>
     <color name="inactive_route_black">#27272A</color>
     <color name="bottom_nav_bar_gray">#283547</color>
+    <color name="tooltip_gray">#263657</color>
 </resources>

@@ -23,6 +23,8 @@ import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.NamedTaskLocation;
 import ai.rideos.android.common.model.RouteInfoModel;
+import ai.rideos.android.common.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo.ContactInfo;
 import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProviders.TestSchedulerProvider;
 import ai.rideos.android.common.view.resources.ResourceProvider;
@@ -30,8 +32,6 @@ import ai.rideos.android.interactors.RiderTripStateInteractor;
 import ai.rideos.android.model.FollowTripDisplayState;
 import ai.rideos.android.model.TripStateModel;
 import ai.rideos.android.model.TripStateModel.Stage;
-import ai.rideos.android.model.VehicleInfo;
-import ai.rideos.android.model.VehicleInfo.ContactInfo;
 import ai.rideos.android.rider_app.on_trip.current_trip.CurrentTripListener;
 import ai.rideos.android.rider_app.on_trip.current_trip.CurrentTripViewModel;
 import ai.rideos.android.rider_app.on_trip.current_trip.DefaultCurrentTripViewModel;
@@ -60,7 +60,7 @@ public class DefaultCurrentTripViewModelTest {
         new LatLng(2, 2),
         0.0f
     );
-    private static final VehicleInfo VEHICLE_INFO = new VehicleInfo("123abc", new ContactInfo(""));
+    private static final VehicleInfo VEHICLE_INFO = new VehicleInfo("123abc", new ContactInfo("", "", ""));
 
     private TestScheduler testScheduler;
     private CurrentTripViewModel viewModelUnderTest;

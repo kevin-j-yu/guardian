@@ -16,21 +16,31 @@
 package ai.rideos.android.driver_app.offline;
 
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.user_storage.UserStorageReader;
+import ai.rideos.android.common.user_storage.UserStorageWriter;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
+import ai.rideos.android.settings.DriverStorageKeys;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 
 public class DefaultOfflineViewModel implements OfflineViewModel {
     private final User user;
+    private final UserStorageReader userStorageReader;
+    private final UserStorageWriter userStorageWriter;
     private final DriverVehicleInteractor vehicleInteractor;
     private final ProgressSubject progressSubject = new ProgressSubject();
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public DefaultOfflineViewModel(final User user,
+                                   final UserStorageReader userStorageReader,
+                                   final UserStorageWriter userStorageWriter,
                                    final DriverVehicleInteractor vehicleInteractor) {
         this.user = user;
+        this.userStorageReader = userStorageReader;
+        this.userStorageWriter = userStorageWriter;
         this.vehicleInteractor = vehicleInteractor;
     }
 
@@ -40,10 +50,22 @@ public class DefaultOfflineViewModel implements OfflineViewModel {
     }
 
     @Override
+    public Single<Boolean> shouldShowTutorial() {
+        return userStorageReader.observeBooleanPreference(DriverStorageKeys.ONLINE_TOGGLE_TUTORIAL_SHOWN)
+            // Only show if the tutorial hasn't been shown before
+            .map(tutorialShown -> !tutorialShown)
+            .firstOrError();
+    }
+
+    @Override
     public void goOnline() {
-        compositeDisposable.add(
-            progressSubject.followAsyncOperation(vehicleInteractor.markVehicleReady(user.getId()))
-        );
+        compositeDisposable.add(progressSubject.followAsyncOperation(
+            vehicleInteractor.markVehicleReady(user.getId())
+                .doOnComplete(
+                    // When the user has successfully gone online, don't show the tutorial anymore
+                    () -> userStorageWriter.storeBooleanPreference(DriverStorageKeys.ONLINE_TOGGLE_TUTORIAL_SHOWN, true)
+                )
+        ));
     }
 
     @Override

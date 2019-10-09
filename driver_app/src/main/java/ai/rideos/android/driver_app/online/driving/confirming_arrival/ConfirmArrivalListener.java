@@ -19,4 +19,6 @@ import ai.rideos.android.driver_app.online.OpenTripDetailsListener;
 
 public interface ConfirmArrivalListener extends OpenTripDetailsListener {
     void didConfirmArrival();
+
+    void backToNavigation();
 }

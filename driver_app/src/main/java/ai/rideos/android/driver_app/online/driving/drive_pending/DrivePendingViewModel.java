@@ -17,8 +17,7 @@ package ai.rideos.android.driver_app.online.driving.drive_pending;
 
 import ai.rideos.android.common.viewmodel.ViewModel;
 import ai.rideos.android.common.viewmodel.map.MapStateProvider;
-import io.reactivex.Observable;
+import ai.rideos.android.driver_app.online.OnTripViewModel;
 
-public interface DrivePendingViewModel extends ViewModel, MapStateProvider {
-    Observable<String> getRouteDetailText();
+public interface DrivePendingViewModel extends ViewModel, MapStateProvider, OnTripViewModel {
 }

@@ -17,13 +17,19 @@ package ai.rideos.android.model;
 
 public class ContactInfo {
     private final String name;
+    private final String phoneNumber;
 
-    public ContactInfo(final String name) {
+    public ContactInfo(final String name, final String phoneNumber) {
         this.name = name;
+        this.phoneNumber = phoneNumber;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     @Override
@@ -35,6 +41,6 @@ public class ContactInfo {
             return false;
         }
         final ContactInfo otherModel = (ContactInfo) other;
-        return name.equals(otherModel.getName());
+        return name.equals(otherModel.getName()) && phoneNumber.equals(otherModel.phoneNumber);
     }
 }

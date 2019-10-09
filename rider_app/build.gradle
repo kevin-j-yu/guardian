@@ -44,7 +44,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':common')
 
-    implementation 'ai.rideos.api:api-android:1.0.8'
+    implementation 'ai.rideos.api:api-android:1.0.12'
 
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.media:media:1.0.1'

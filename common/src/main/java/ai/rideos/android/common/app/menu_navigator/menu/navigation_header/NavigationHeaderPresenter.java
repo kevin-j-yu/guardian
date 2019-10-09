@@ -16,8 +16,8 @@
 package ai.rideos.android.common.app.menu_navigator.menu.navigation_header;
 
 import ai.rideos.android.common.R;
+import ai.rideos.android.common.app.dependency.CommonDependencyRegistry;
 import ai.rideos.android.common.authentication.User;
-import ai.rideos.android.common.user_storage.SharedPreferencesUserStorageReader;
 import ai.rideos.android.common.view.Presenter;
 import android.content.Context;
 import android.view.View;
@@ -35,7 +35,7 @@ public class NavigationHeaderPresenter implements Presenter<View> {
     public NavigationHeaderPresenter(final Context context) {
         viewModel = new DefaultNavigationHeaderViewModel(
             User.get(context),
-            SharedPreferencesUserStorageReader.forContext(context)
+            CommonDependencyRegistry.commonDependencyFactory().getUserProfileInteractor(context)
         );
     }
 

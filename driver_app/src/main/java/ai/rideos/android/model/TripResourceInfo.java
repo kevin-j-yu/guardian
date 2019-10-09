@@ -16,15 +16,26 @@
 package ai.rideos.android.model;
 
 import java.io.Serializable;
+import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.Nullable;
 
 public class TripResourceInfo implements Serializable {
     private final int numPassengers;
     private final String nameOfTripRequester;
+    @Nullable
+    private final String phoneNumber;
 
-    // TODO passenger number
     public TripResourceInfo(final int numPassengers, final String nameOfTripRequester) {
+        this(numPassengers, nameOfTripRequester, null);
+    }
+
+    public TripResourceInfo(final int numPassengers,
+                            final String nameOfTripRequester,
+                            @Nullable final String phoneNumber) {
         this.numPassengers = numPassengers;
         this.nameOfTripRequester = nameOfTripRequester;
+        this.phoneNumber = phoneNumber;
     }
 
     public int getNumPassengers() {
@@ -33,6 +44,10 @@ public class TripResourceInfo implements Serializable {
 
     public String getNameOfTripRequester() {
         return nameOfTripRequester;
+    }
+
+    public Optional<String> getPhoneNumber() {
+        return Optional.ofNullable(phoneNumber);
     }
 
     @Override
@@ -44,6 +59,8 @@ public class TripResourceInfo implements Serializable {
             return false;
         }
         final TripResourceInfo that = (TripResourceInfo) other;
-        return numPassengers == that.numPassengers && nameOfTripRequester.equals(that.nameOfTripRequester);
+        return numPassengers == that.numPassengers
+            && nameOfTripRequester.equals(that.nameOfTripRequester)
+            && Objects.equals(phoneNumber, that.phoneNumber);
     }
 }

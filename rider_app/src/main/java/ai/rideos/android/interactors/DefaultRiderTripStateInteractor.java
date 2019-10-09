@@ -17,10 +17,11 @@ package ai.rideos.android.interactors;
 
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.interactors.GrpcServerInteractor;
-import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.RouteInfoModel;
+import ai.rideos.android.common.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo.ContactInfo;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.common.utils.Locations;
@@ -30,8 +31,6 @@ import ai.rideos.android.model.TripStateModel;
 import ai.rideos.android.model.TripStateModel.CancellationReason;
 import ai.rideos.android.model.TripStateModel.CancellationReason.Source;
 import ai.rideos.android.model.TripStateModel.Stage;
-import ai.rideos.android.model.VehicleInfo;
-import ai.rideos.android.model.VehicleInfo.ContactInfo;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.AssignedVehicle;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.Stop;
@@ -60,7 +59,6 @@ import java.util.OptionalInt;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import timber.log.Timber;
 
 public class DefaultRiderTripStateInteractor
@@ -272,20 +270,17 @@ public class DefaultRiderTripStateInteractor
     }
 
     private static VehicleInfo getVehicleInfoFromTrip(final RideHailCommons.VehicleInfo assignedVehicle) {
-        final String contactUrl;
+        final ContactInfo contactInfo;
         if (assignedVehicle.getDriverInfo().hasContactInfo()) {
-            if (!assignedVehicle.getDriverInfo().getContactInfo().getContactUrl().isEmpty()) {
-                contactUrl = assignedVehicle.getDriverInfo().getContactInfo().getContactUrl();
-            } else if (!assignedVehicle.getDriverInfo().getContactInfo().getPhoneNumber().isEmpty()) {
-                contactUrl = "tel://"
-                        + assignedVehicle.getDriverInfo().getContactInfo().getPhoneNumber();
-            } else {
-                contactUrl = "";
-            }
+            contactInfo = new ContactInfo(
+                assignedVehicle.getDriverInfo().getContactInfo().getName(),
+                assignedVehicle.getDriverInfo().getContactInfo().getPhoneNumber(),
+                assignedVehicle.getDriverInfo().getContactInfo().getContactUrl()
+            );
         } else {
-            contactUrl = "";
+            contactInfo = new ContactInfo("", "", "");
         }
-        return new VehicleInfo(assignedVehicle.getLicensePlate(), new ContactInfo(contactUrl));
+        return new VehicleInfo(assignedVehicle.getLicensePlate(), contactInfo);
     }
 
     private static CancellationReason getCancellationReason(final Canceled canceledState) {

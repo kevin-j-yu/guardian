@@ -21,20 +21,27 @@ import ai.rideos.android.common.app.dependency.DefaultCommonDependencyFactory;
 import ai.rideos.android.common.app.menu_navigator.DefaultMenuOptions;
 import ai.rideos.android.common.app.menu_navigator.MenuOptionFragmentRegistry;
 import ai.rideos.android.common.app.menu_navigator.account_settings.AccountSettingsFragment;
+import ai.rideos.android.common.app.menu_navigator.account_settings.UserProfileInteractor;
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.common.grpc.ChannelProvider;
+import ai.rideos.android.common.interactors.RouteInteractor;
 import ai.rideos.android.common.interactors.mapbox.MapboxApiInteractor;
+import ai.rideos.android.common.interactors.mapbox.MapboxRouteInteractor;
 import ai.rideos.android.common.model.MenuOption;
 import ai.rideos.android.driver_app.MainFragment;
 import ai.rideos.android.driver_app.R;
 import ai.rideos.android.driver_app.menu.developer_options.DriverDeveloperOptionsFragment;
+import ai.rideos.android.driver_app.vehicle_settings.VehicleSettingsFragment;
 import ai.rideos.android.interactors.DefaultDriverPlanInteractor;
 import ai.rideos.android.interactors.DefaultDriverVehicleInteractor;
 import ai.rideos.android.interactors.DriverPlanInteractor;
+import ai.rideos.android.interactors.DriverUserProfileInteractor;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
 import android.content.Context;
 
 public class DefaultDriverDependencyFactory extends DefaultCommonDependencyFactory implements DriverDependencyFactory {
+    private static final int VEHICLE_SETTINGS_ID = 3;
+
     @Override
     public DriverPlanInteractor getDriverPlanInteractor(final Context context) {
         return new DefaultDriverPlanInteractor(ChannelProvider.getChannelSupplierForContext(context), User.get(context));
@@ -67,6 +74,16 @@ public class DefaultDriverDependencyFactory extends DefaultCommonDependencyFacto
                     R.drawable.ic_person_24dp
                 ),
                 AccountSettingsFragment::new
+            )
+            .registerOption(
+                new MenuOption(
+                    // TODO maybe this way of identifying menu options is not the best.
+                    // This chooses an ID not used by DefaultMenuOptions
+                    VEHICLE_SETTINGS_ID,
+                    context.getString(R.string.vehicle_settings_menu_option),
+                    R.drawable.ic_car
+                ),
+                VehicleSettingsFragment::new
             );
         final boolean shouldShowDeveloperOptions = new MetadataReader(context)
             .getBooleanMetadata(CommonMetadataKeys.ENABLE_DEVELOPER_OPTIONS_KEY)
@@ -82,5 +99,16 @@ public class DefaultDriverDependencyFactory extends DefaultCommonDependencyFacto
             );
         }
         return registry;
+    }
+
+    @Override
+    public UserProfileInteractor getUserProfileInteractor(final Context context) {
+        return new DriverUserProfileInteractor(getDriverVehicleInteractor(context));
+    }
+
+    @Override
+    public RouteInteractor getRouteInteractor(final Context context) {
+        // Since our routes do not match well to Mapbox turn-by-turn nav, the driver app uses mapbox routes and ETAs.
+        return new MapboxRouteInteractor(context);
     }
 }

@@ -20,21 +20,27 @@ import ai.rideos.android.common.interactors.GrpcServerInteractor;
 import ai.rideos.android.common.model.LatLng;
 import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.model.RouteInfoModel;
+import ai.rideos.android.common.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo.ContactInfo;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
 import ai.rideos.android.common.utils.Locations;
 import ai.rideos.android.model.VehicleDisplayRouteLeg;
 import ai.rideos.android.model.VehicleRegistration;
 import ai.rideos.android.model.VehicleStatus;
-import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.ContactInfo;
+import ai.rideos.api.commons.ride_hail_commons.RideHailCommons;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.DriverInfo;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleDefinition;
-import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleInfo;
+import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleInfoUpdate;
 import ai.rideos.api.commons.ride_hail_commons.RideHailCommons.VehicleState.Step.RouteLeg;
+import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.CancelTripRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.CompleteStepRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.CreateVehicleRequest;
+import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.GetVehicleInfoRequest;
+import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.GetVehicleInfoResponse;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.GetVehicleStateRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.RejectTripRequest;
+import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest.SetRouteLegs;
 import ai.rideos.api.ride_hail_driver.v1.RideHailDriver.UpdateVehicleStateRequest.SetRouteLegs.LegDefinition;
@@ -46,6 +52,7 @@ import ai.rideos.api.ride_hail_driver.v1.RideHailDriverServiceGrpc.RideHailDrive
 import androidx.core.util.Pair;
 import com.google.maps.android.PolyUtil;
 import com.google.protobuf.FloatValue;
+import com.google.protobuf.StringValue;
 import io.grpc.ManagedChannel;
 import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
@@ -103,9 +110,9 @@ public class DefaultDriverVehicleInteractor
             CreateVehicleRequest.newBuilder()
                 .setId(vehicleId)
                 .setInfo(
-                    VehicleInfo.newBuilder()
+                    RideHailCommons.VehicleInfo.newBuilder()
                         .setDriverInfo(DriverInfo.newBuilder().setContactInfo(
-                            ContactInfo.newBuilder()
+                            RideHailCommons.ContactInfo.newBuilder()
                                 .setName(vehicleRegistration.getPreferredName())
                                 .setPhoneNumber(vehicleRegistration.getPhoneNumber())
                         ))
@@ -168,6 +175,15 @@ public class DefaultDriverVehicleInteractor
     }
 
     @Override
+    public Completable cancelTrip(final String tripId) {
+        return fetchAuthorizedStubAndExecute(stub -> stub.cancelTrip(CancelTripRequest.newBuilder()
+            .setId(tripId)
+            .build())
+        )
+            .ignoreElements();
+    }
+
+    @Override
     public Completable updateVehicleLocation(final String vehicleId, final LocationAndHeading locationAndHeading) {
         return fetchAuthorizedStubAndExecute(stub -> stub.updateVehicleState(
             UpdateVehicleStateRequest.newBuilder()
@@ -204,6 +220,58 @@ public class DefaultDriverVehicleInteractor
                 .build()
         ))
             .ignoreElements();
+    }
+
+    @Override
+    public Completable updateContactInfo(final String vehicleId, final ContactInfo contactInfo) {
+        return fetchAuthorizedStubAndExecute(stub -> stub.updateVehicle(
+            UpdateVehicleRequest.newBuilder()
+                .setId(vehicleId)
+                .setUpdatedVehicleInfo(
+                    VehicleInfoUpdate.newBuilder()
+                        .setDriverInfo(DriverInfo.newBuilder().setContactInfo(
+                            RideHailCommons.ContactInfo.newBuilder()
+                                .setName(contactInfo.getName())
+                                .setPhoneNumber(contactInfo.getPhoneNumber())
+                                .setContactUrl(contactInfo.getUrl())
+                        ))
+                )
+                .build()
+        ))
+            .ignoreElements();
+    }
+
+    @Override
+    public Completable updateLicensePlate(final String vehicleId, final String licensePlate) {
+        return fetchAuthorizedStubAndExecute(stub -> stub.updateVehicle(
+            UpdateVehicleRequest.newBuilder()
+                .setId(vehicleId)
+                .setUpdatedVehicleInfo(
+                    VehicleInfoUpdate.newBuilder()
+                        .setLicensePlate(StringValue.newBuilder().setValue(licensePlate))
+                )
+                .build()
+        ))
+            .ignoreElements();
+    }
+
+    @Override
+    public Single<VehicleInfo> getVehicleInfo(final String vehicleId) {
+        return fetchAuthorizedStubAndExecute(stub -> stub.getVehicleInfo(
+            GetVehicleInfoRequest.newBuilder()
+                .setId(vehicleId)
+                .build()
+        ))
+            .map(GetVehicleInfoResponse::getInfo)
+            .map(info -> new VehicleInfo(
+                info.getLicensePlate(),
+                new VehicleInfo.ContactInfo(
+                    info.getDriverInfo().getContactInfo().getName(),
+                    info.getDriverInfo().getContactInfo().getPhoneNumber(),
+                    info.getDriverInfo().getContactInfo().getContactUrl()
+                )
+            ))
+            .firstOrError();
     }
 
     private RouteLeg getRouteLegFromRouteInfo(final RouteInfoModel routeInfo) {

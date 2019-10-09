@@ -16,9 +16,13 @@
 package ai.rideos.android.driver_app.offline;
 
 import ai.rideos.android.common.authentication.User;
+import ai.rideos.android.common.user_storage.UserStorageReader;
+import ai.rideos.android.common.user_storage.UserStorageWriter;
 import ai.rideos.android.common.viewmodel.progress.ProgressSubject.ProgressState;
 import ai.rideos.android.interactors.DriverVehicleInteractor;
+import ai.rideos.android.settings.DriverStorageKeys;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.observers.TestObserver;
 import java.io.IOException;
 import org.junit.Before;
@@ -29,14 +33,18 @@ public class DefaultOfflineViewModelTest {
     private static final String VEHICLE_ID = "vehicle-1";
 
     private DefaultOfflineViewModel viewModelUnderTest;
+    private UserStorageReader userStorageReader;
+    private UserStorageWriter userStorageWriter;
     private DriverVehicleInteractor vehicleInteractor;
 
     @Before
     public void setUp() {
         final User user = Mockito.mock(User.class);
         Mockito.when(user.getId()).thenReturn(VEHICLE_ID);
+        userStorageReader = Mockito.mock(UserStorageReader.class);
+        userStorageWriter = Mockito.mock(UserStorageWriter.class);
         vehicleInteractor = Mockito.mock(DriverVehicleInteractor.class);
-        viewModelUnderTest = new DefaultOfflineViewModel(user, vehicleInteractor);
+        viewModelUnderTest = new DefaultOfflineViewModel(user, userStorageReader, userStorageWriter, vehicleInteractor);
     }
 
     @Test
@@ -57,6 +65,7 @@ public class DefaultOfflineViewModelTest {
             .assertValueAt(2, ProgressState.SUCCEEDED);
 
         Mockito.verify(vehicleInteractor).markVehicleReady(VEHICLE_ID);
+        Mockito.verify(userStorageWriter).storeBooleanPreference(DriverStorageKeys.ONLINE_TOGGLE_TUTORIAL_SHOWN, true);
     }
 
     @Test
@@ -80,5 +89,19 @@ public class DefaultOfflineViewModelTest {
 
         viewModelUnderTest.goOnline();
         stateObserver.assertValueCount(1).assertValueAt(0, ProgressState.SUCCEEDED);
+    }
+
+    @Test
+    public void testTutorialShouldBeShownWhenNeverPreviouslyShown() {
+        Mockito.when(userStorageReader.observeBooleanPreference(DriverStorageKeys.ONLINE_TOGGLE_TUTORIAL_SHOWN))
+            .thenReturn(Observable.just(false));
+        viewModelUnderTest.shouldShowTutorial().test().assertValueAt(0, true);
+    }
+
+    @Test
+    public void testTutorialShouldNotBeShownWhenAlreadyShown() {
+        Mockito.when(userStorageReader.observeBooleanPreference(DriverStorageKeys.ONLINE_TOGGLE_TUTORIAL_SHOWN))
+            .thenReturn(Observable.just(true));
+        viewModelUnderTest.shouldShowTutorial().test().assertValueAt(0, false);
     }
 }

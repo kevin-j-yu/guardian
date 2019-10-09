@@ -52,7 +52,7 @@
     <string name="account_settings_title">Edit Profile</string>
     <string name="logout_button_text">Logout</string>
     <string name="sign_out_button_text">Sign Out</string>
-    <string name="save_button_text">SAVE</string>
+    <string name="save_button_text">Submit</string>
     <string name="account_preferred_name_hint">Preferred Name</string>
     <string name="account_email_hint">Email</string>
     <string name="developer_option_environment_title">Environment</string>
@@ -63,4 +63,8 @@
     <string name="error_dialog_title">Uh-oh</string>
     <string name="error_dialog_confirmation">Okay</string>
     <string name="version_name_display">Version %1$s</string>
+    <string name="account_phone_number_input">Phone Number</string>
+    <string name="trip_alert_channel_name">Trip Alerts</string>
+    <string name="trip_alert_channel_description">Get alerts regarding your active trips.</string>
+    <string name="trip_alert_channel_id">trip_alert_channel</string>
 </resources>

@@ -34,6 +34,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposables;
 import java.util.function.Supplier;
+import timber.log.Timber;
 
 /**
  * FusedLocationDeviceLocator uses the FusedLocationProviderClient built into Android to request updates about the
@@ -41,6 +42,8 @@ import java.util.function.Supplier;
  * location updates and emits them. When this subscription is disposed of, the updates stop.
  */
 public class FusedLocationDeviceLocator implements DeviceLocator {
+    private static final int DEFAULT_POLL_INTERVAL_MILLIS = 1000;
+
     private final Supplier<FusedLocationProviderClient> clientSupplier;
     private final PermissionsChecker permissionsChecker;
     private final SchedulerProvider schedulerProvider;
@@ -91,17 +94,29 @@ public class FusedLocationDeviceLocator implements DeviceLocator {
         if (!permissionsChecker.areLocationPermissionsGranted()) {
             return Single.error(new PermissionsNotGrantedException("Location permissions not granted"));
         }
-        return Single.<Location>create(
+        return Single.<LocationAndHeading>create(
             emitter -> clientSupplier.get().getLastLocation()
-                .addOnSuccessListener(emitter::onSuccess)
+                .addOnSuccessListener(location -> {
+                    if (location == null) {
+                        emitter.onError(new IllegalStateException("Latest location is null"));
+                    } else {
+                        emitter.onSuccess(new LocationAndHeading(
+                            Locations.getLatLngFromAndroidLocation(location),
+                            Locations.getHeadingFromAndroidLocationOrDefault(location, 0f)
+                        ));
+                    }
+                })
                 .addOnFailureListener(emitter::onError)
         )
+            // In the event that we cannot get the last known location, log the error and get the location through
+            // polling
+            .onErrorResumeNext(e -> {
+                Timber.e(e, "Could not get last known location");
+                return observeCurrentLocation(DEFAULT_POLL_INTERVAL_MILLIS)
+                    .firstOrError(); // this doesn't actually ever error
+            })
             .subscribeOn(schedulerProvider.mainThread())
-            .observeOn(schedulerProvider.computation())
-            .map(location -> new LocationAndHeading(
-                Locations.getLatLngFromAndroidLocation(location),
-                Locations.getHeadingFromAndroidLocationOrDefault(location, 0f)
-            ));
+            .observeOn(schedulerProvider.computation());
     }
 
     /**

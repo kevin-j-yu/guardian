@@ -15,19 +15,19 @@
  */
 package ai.rideos.android.rider_app.on_trip.current_trip;
 
-import ai.rideos.android.model.VehicleInfo;
+import ai.rideos.android.common.model.VehicleInfo;
 import ai.rideos.android.rider_app.R;
 import ai.rideos.android.rider_app.deeplink.UriLauncher;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class VehicleInfoView extends ConstraintLayout {
     private TextView infoText;
-    private View contactButton;
+    private AppCompatImageView contactButton;
 
     public VehicleInfoView(final Context context) {
         super(context);
@@ -50,6 +50,7 @@ public class VehicleInfoView extends ConstraintLayout {
         contactButton = findViewById(R.id.contact_button);
     }
 
+    // TODO this is starting to have a fair bit of logic - does it deserve its own fragment?
     public void setVehicleInfo(@Nullable final VehicleInfo vehicleInfo) {
         if (vehicleInfo == null) {
             contactButton.setVisibility(GONE);
@@ -57,12 +58,24 @@ public class VehicleInfoView extends ConstraintLayout {
         }
         infoText.setText(vehicleInfo.getLicensePlate());
 
-        if (vehicleInfo.getContactInfo().getUrl().isEmpty()) {
-            contactButton.setVisibility(GONE);
-        } else {
+        setContactButtonView(vehicleInfo.getContactInfo());
+    }
+
+    private void setContactButtonView(final VehicleInfo.ContactInfo vehicleContact) {
+        if (!vehicleContact.getPhoneNumber().isEmpty()) {
+            contactButton.setImageResource(R.drawable.ic_phone_32dp);
+            final UriLauncher launcher = new UriLauncher(getContext(), "tel://" + vehicleContact.getPhoneNumber());
+
             contactButton.setVisibility(VISIBLE);
-            final UriLauncher launcher = new UriLauncher(getContext(), vehicleInfo.getContactInfo().getUrl());
             contactButton.setOnClickListener(click -> launcher.launch());
+        } else if (!vehicleContact.getUrl().isEmpty()) {
+            contactButton.setImageResource(R.drawable.ic_message_32dp);
+            final UriLauncher launcher = new UriLauncher(getContext(), vehicleContact.getUrl());
+            
+            contactButton.setVisibility(VISIBLE);
+            contactButton.setOnClickListener(click -> launcher.launch());
+        } else {
+            contactButton.setVisibility(GONE);
         }
     }
 }

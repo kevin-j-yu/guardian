@@ -70,7 +70,7 @@ dependencies {
     implementation 'com.auth0.android:lock:2.12.1'
 
     // TODO https://github.com/mapbox/mapbox-navigation-android/pull/1963
-    implementation 'com.github.tomrom95:mapbox-navigation-android:006a567f72'
+    implementation 'com.github.tomrom95:mapbox-navigation-android:fe6eb3ee07'
 
     implementation 'com.jakewharton.timber:timber:4.7.1'
 

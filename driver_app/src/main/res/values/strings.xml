@@ -85,4 +85,6 @@
     <string name="vehicle_settings_title">Vehicle Info</string>
     <string name="vehicle_settings_menu_option">Vehicle Info</string>
     <string name="trip_detail_tooltip_text">Tap to see trip details, contact the\nrider, or modify the trip</string>
+    <string name="new_ride_request_details_text">You have a new ride request</string>
+    <string name="dismiss_driver_action_modal_button_text">Dismiss</string>
 </resources>

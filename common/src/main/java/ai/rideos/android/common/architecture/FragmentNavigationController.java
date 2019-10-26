@@ -55,6 +55,22 @@ public class FragmentNavigationController implements NavigationController {
     }
 
     @Override
+    public <Args extends Serializable, Listener, I extends Listener> void showModal(
+        final ViewController<Args, Listener> viewController,
+        final Args input,
+        final I listenerInstance
+    ) {
+        if (!(viewController instanceof ModalFragmentViewController)) {
+            throw new RuntimeException("Can only display ModalFragmentViewController as modals currently");
+        }
+        final ModalFragmentViewController fragmentToDisplay = (ModalFragmentViewController) viewController;
+        final Bundler<Args, Listener> bundler = new Bundler<>(viewController, listenerRegistry);
+        final Bundle args = bundler.createBundle(input, listenerInstance);
+        fragmentToDisplay.setArguments(args);
+        fragmentToDisplay.show(fragmentManager, "modal_fragment");
+    }
+
+    @Override
     public ViewController getActiveViewController() {
         final Fragment fragment = fragmentManager.findFragmentById(fragmentContainer);
         if (fragment instanceof ViewController) {

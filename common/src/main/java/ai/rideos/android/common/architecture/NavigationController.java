@@ -27,5 +27,10 @@ public interface NavigationController {
         final Args input,
         final I listenerInstance);
 
+    <Args extends Serializable, Listener, I extends Listener> void showModal(
+        final ViewController<Args, Listener> viewController,
+        final Args input,
+        final I listenerInstance);
+
     ViewController getActiveViewController();
 }

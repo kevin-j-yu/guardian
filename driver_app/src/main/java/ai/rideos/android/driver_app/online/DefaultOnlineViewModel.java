@@ -22,9 +22,13 @@ import ai.rideos.android.common.reactive.Notification;
 import ai.rideos.android.common.reactive.Result;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.common.reactive.SchedulerProviders.DefaultSchedulerProvider;
+import ai.rideos.android.common.utils.SetOperations;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
 import ai.rideos.android.interactors.DriverPlanInteractor;
+import ai.rideos.android.model.DriverAlert;
+import ai.rideos.android.model.DriverAlert.DriverAlertType;
 import ai.rideos.android.model.OnlineViewState;
+import ai.rideos.android.model.TripResourceInfo;
 import ai.rideos.android.model.VehiclePlan;
 import ai.rideos.android.model.VehiclePlan.Waypoint;
 import androidx.core.util.Pair;
@@ -36,7 +40,10 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.reactivex.subjects.PublishSubject;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import timber.log.Timber;
 
 public class DefaultOnlineViewModel implements OnlineViewModel {
@@ -143,6 +150,48 @@ public class DefaultOnlineViewModel implements OnlineViewModel {
             })
             // If the display is equivalent (same display type AND current waypoint), don't update
             .distinctUntilChanged();
+    }
+
+    @Override
+    public Observable<DriverAlert> getDriverAlerts() {
+        final Observable<Pair<VehiclePlan, VehiclePlan>> planObservable = currentPlan.scan(
+            Pair.create(null, new VehiclePlan(Collections.emptyList())),
+            (seed, newPlan) -> Pair.create(seed.second, newPlan)
+        );
+
+        return planObservable
+            .observeOn(schedulerProvider.computation())
+            .flatMap(oldAndNewPlan -> {
+                if (oldAndNewPlan.first == null || oldAndNewPlan.second == null) {
+                    return Observable.empty();
+                }
+                final Map<String, TripResourceInfo> oldTrips = getTripsInPlan(oldAndNewPlan.first);
+                final Map<String, TripResourceInfo> newTrips = getTripsInPlan(oldAndNewPlan.second);
+                final SetOperations.DiffResult<String> tripDifferences = SetOperations.getDifferences(
+                    oldTrips.keySet(),
+                    newTrips.keySet()
+                );
+                // TODO - Until we can tell what happened to old trips (i.e. if they were completed, cancelled or
+                //  replaced), then only alert when no old trips are removed
+                if (tripDifferences.getOnlyOnLeft().isEmpty()) {
+                    return Observable.fromIterable(
+                        tripDifferences.getOnlyOnRight().stream()
+                            .map(newTrip -> new DriverAlert(DriverAlertType.NEW_REQUEST, newTrips.get(newTrip)))
+                            .collect(Collectors.toList())
+                    );
+                }
+                return Observable.empty();
+            });
+    }
+
+    private static Map<String, TripResourceInfo> getTripsInPlan(final VehiclePlan vehiclePlan) {
+        final Map<String, TripResourceInfo> resourcesByTripId = new HashMap<>();
+        for (final Waypoint waypoint : vehiclePlan.getWaypoints()) {
+            if (!resourcesByTripId.containsKey(waypoint.getTaskId())) {
+                resourcesByTripId.put(waypoint.getTaskId(), waypoint.getAction().getTripResourceInfo());
+            }
+        }
+        return resourcesByTripId;
     }
 
     @Override

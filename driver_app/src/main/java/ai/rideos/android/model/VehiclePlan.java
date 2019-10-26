@@ -17,12 +17,12 @@ package ai.rideos.android.model;
 
 import ai.rideos.android.common.model.LatLng;
 import com.google.gson.Gson;
+import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public class VehiclePlan {
-    public static class Waypoint {
+    public static class Waypoint implements Serializable {
         private final String taskId;
         private final List<String> stepIds;
         private final Action action;
@@ -60,7 +60,7 @@ public class VehiclePlan {
         }
     }
 
-    public static class Action {
+    public static class Action implements Serializable {
         public enum ActionType {
             DRIVE_TO_PICKUP,
             LOAD_RESOURCE,

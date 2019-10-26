@@ -259,10 +259,11 @@ public class MapboxNavigationFragment extends FragmentViewController<NavigationA
                 new LatLng(offRoutePoint.latitude(), offRoutePoint.longitude()),
                 heading
             ));
-            return false;
+        } else {
+            // Otherwise, just re-route to the same destination
+            mapboxViewModel.routeTo(getArgs().destination);
         }
-        // Otherwise, let mapbox figure out re-route
-        return true;
+        return false;
     }
 
     @Override

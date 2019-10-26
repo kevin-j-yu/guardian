@@ -57,7 +57,8 @@ public class MetadataReader {
     public MetadataResult<String> getStringMetadata(final String key) {
         try {
             final Bundle metadata = getMetadataFromContext();
-            final String maybeValue = metadata.getString(key);
+            final Object valueObject = metadata.get(key);
+            final String maybeValue = valueObject == null ? null : String.valueOf(valueObject);
             return new MetadataResult<>(key, maybeValue);
         } catch (NameNotFoundException e) {
             return new MetadataResult<>(key, null);

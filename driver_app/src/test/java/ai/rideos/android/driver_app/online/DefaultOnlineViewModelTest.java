@@ -25,6 +25,8 @@ import ai.rideos.android.common.model.LocationAndHeading;
 import ai.rideos.android.common.reactive.SchedulerProvider;
 import ai.rideos.android.driver_app.online.idle.GoOfflineListener;
 import ai.rideos.android.interactors.DriverPlanInteractor;
+import ai.rideos.android.model.DriverAlert;
+import ai.rideos.android.model.DriverAlert.DriverAlertType;
 import ai.rideos.android.model.OnlineViewState;
 import ai.rideos.android.model.OnlineViewState.DisplayType;
 import ai.rideos.android.model.TripResourceInfo;
@@ -119,6 +121,48 @@ public class DefaultOnlineViewModelTest {
         viewModelUnderTest.getOnlineViewState().test()
             .assertValueAt(0, state -> state.getDisplayType() == displayType
                 && state.getCurrentWaypoint().equals(currentWaypoint)
+            );
+    }
+
+    @Test
+    public void testDriverAlertIsEmittedWhenNewTripAddedAndQueueEmpty() {
+        final TestObserver<DriverAlert> testObserver = viewModelUnderTest.getDriverAlerts().test();
+
+        Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
+            .thenReturn(Observable.just(new VehiclePlan(Collections.singletonList(MOCK_WAYPOINT))));
+        testScheduler.triggerActions();
+        testObserver.assertValueCount(1)
+            .assertValueAt(
+                0,
+                new DriverAlert(DriverAlertType.NEW_REQUEST, MOCK_WAYPOINT.getAction().getTripResourceInfo())
+            );
+
+        // Getting the same plan shouldn't emit another alert
+        testScheduler.advanceTimeBy(POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        testObserver.assertValueCount(1);
+    }
+
+    @Test
+    public void testDriverAlertIsEmittedWhenNewTripAddedAndQueueHasAnotherTrip() {
+        final TestObserver<DriverAlert> testObserver = viewModelUnderTest.getDriverAlerts().test();
+        final Waypoint secondWaypoint = new Waypoint(
+            "task-2",
+            Collections.singletonList("step-1"),
+            new Action(LOCATION.getLatLng(), ActionType.DRIVE_TO_PICKUP, new TripResourceInfo(2, "Rider2"))
+        );
+
+        Mockito.when(planInteractor.getPlanForVehicle(eq(VEHICLE_ID)))
+            .thenReturn(Observable.just(new VehiclePlan(Collections.singletonList(MOCK_WAYPOINT))))
+            .thenReturn(Observable.just(new VehiclePlan(Arrays.asList(MOCK_WAYPOINT, secondWaypoint))));
+        testScheduler.triggerActions();
+        testObserver.assertValueCount(1);
+
+        // Getting the same plan shouldn't emit another alert
+        testScheduler.advanceTimeBy(POLL_INTERVAL, TimeUnit.MILLISECONDS);
+        testObserver.assertValueCount(2)
+            .assertValueAt(
+                1,
+                new DriverAlert(DriverAlertType.NEW_REQUEST, secondWaypoint.getAction().getTripResourceInfo())
             );
     }
 

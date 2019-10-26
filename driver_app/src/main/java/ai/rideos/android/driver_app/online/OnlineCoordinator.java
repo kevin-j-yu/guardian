@@ -20,6 +20,8 @@ import ai.rideos.android.common.architecture.EmptyArg;
 import ai.rideos.android.common.architecture.NavigationController;
 import ai.rideos.android.common.authentication.User;
 import ai.rideos.android.device.PotentiallySimulatedDeviceLocator;
+import ai.rideos.android.driver_app.alerts.NewRideRequestAlertFragment;
+import ai.rideos.android.driver_app.alerts.NewRideRequestAlertFragment.NewRideRequestAlertArgs;
 import ai.rideos.android.driver_app.dependency.DriverDependencyRegistry;
 import ai.rideos.android.driver_app.online.driving.DrivingCoordinator;
 import ai.rideos.android.driver_app.online.driving.DrivingInput;
@@ -67,7 +69,7 @@ public class OnlineCoordinator implements Coordinator<EmptyArg> {
 
     @Override
     public void start(final EmptyArg emptyArg) {
-        final Disposable subscription = onlineViewModel.getOnlineViewState()
+        final Disposable viewStateSubscription = onlineViewModel.getOnlineViewState()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(state -> {
                 stopChild();
@@ -98,8 +100,21 @@ public class OnlineCoordinator implements Coordinator<EmptyArg> {
                         );
                 }
             });
+        final Disposable alertSubscription = onlineViewModel.getDriverAlerts()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(alert -> {
+                switch (alert.getAlertType()) {
+                    case NEW_REQUEST:
+                        navController.showModal(
+                            new NewRideRequestAlertFragment(),
+                            new NewRideRequestAlertArgs(alert.getResourceInfo().getNumPassengers()),
+                            () -> {} // ignore for now
+                        );
+                        return;
+                }
+            });
         compositeDisposable = new CompositeDisposable();
-        compositeDisposable.add(subscription);
+        compositeDisposable.addAll(viewStateSubscription, alertSubscription);
     }
 
     private void stopChild() {

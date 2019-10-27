@@ -15,6 +15,47 @@
  */
 package ai.rideos.android.google.map;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraMoveStartedListener;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import ai.rideos.android.common.app.map.MapRelay;
 import ai.rideos.android.common.app.map.MapStateReceiver.MapCenterListener;
 import ai.rideos.android.common.app.map.MapViewModel;
@@ -31,42 +72,10 @@ import ai.rideos.android.common.utils.SetOperations.DiffResult;
 import ai.rideos.android.common.view.DensityConverter;
 import ai.rideos.android.common.view.ViewMargins;
 import ai.rideos.android.google.R;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.OnCameraMoveStartedListener;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Dot;
-import com.google.android.gms.maps.model.Gap;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PatternItem;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-public class GoogleMapFragment extends Fragment {
+public class GoogleMapFragment extends Fragment implements OnMapReadyCallback {
     private static final int BOUNDS_PADDING = 90;
     private static final int ANIMATION_SPEED_MILLIS = 250;
     private static final int RE_CENTER_PADDING_DP = 20;
@@ -79,6 +88,7 @@ public class GoogleMapFragment extends Fragment {
     private ImageView centerPin;
     private final Map<String, Marker> currentMarkers = new HashMap<>();
     private List<Polyline> currentPaths = new ArrayList<>();
+    private Context context;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -86,25 +96,13 @@ public class GoogleMapFragment extends Fragment {
         centerPin = view.findViewById(R.id.center_pin);
 
         mapViewModel = MapRelay.get();
-
+        context = view.getContext();
         reCenterButton = view.findViewById(R.id.re_center_button);
         reCenterButton.setVisibility(View.GONE);
         reCenterButton.setOnClickListener(click -> mapViewModel.reCenterMap());
         final SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
             .findFragmentById(R.id.support_map_fragment);
-        mapFragment.getMapAsync(map -> {
-            googleMap = map;
-            final UiSettings uiSettings = googleMap.getUiSettings();
-            uiSettings.setMyLocationButtonEnabled(false);
-            uiSettings.setRotateGesturesEnabled(false);
-            uiSettings.setTiltGesturesEnabled(false);
-            uiSettings.setCompassEnabled(false);
-            uiSettings.setMapToolbarEnabled(false);
-            uiSettings.setZoomControlsEnabled(false);
-            // https://issuetracker.google.com/issues/35829548
-            googleMap.setIndoorEnabled(false);
-            subscribeToMapViewModel();
-        });
+        mapFragment.getMapAsync(this);
         return view;
     }
 
@@ -330,5 +328,30 @@ public class GoogleMapFragment extends Fragment {
     private static void setLayoutParamsForView(final View view, final ViewMargins mapMargins) {
         final FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) view.getLayoutParams();
         lp.setMargins(mapMargins.getLeft(), mapMargins.getTop(), mapMargins.getRight(), mapMargins.getBottom());
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+        try {
+            // Customise map styling via JSON file
+            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(context, R.raw.mapstyle_night);
+            boolean success = googleMap.setMapStyle(style);
+            if (!success) {
+                Log.e("Error", "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e("Error", "Can't find style. Error: ", e);
+        }
+        final UiSettings uiSettings = googleMap.getUiSettings();
+        uiSettings.setMyLocationButtonEnabled(false);
+        uiSettings.setRotateGesturesEnabled(false);
+        uiSettings.setTiltGesturesEnabled(false);
+        uiSettings.setCompassEnabled(false);
+        uiSettings.setMapToolbarEnabled(false);
+        uiSettings.setZoomControlsEnabled(false);
+        // https://issuetracker.google.com/issues/35829548
+        googleMap.setIndoorEnabled(false);
+        subscribeToMapViewModel();
     }
 }

@@ -11,6 +11,9 @@ One of the useful tools that RideOS offers is the use of a `constraint`. This al
 
 ## Additions
 Various changes in the SDK for visual updates to the app
+
+<img src="assets/guardianui.png" width="200">
+
 ### Assets
 Illustrator and image files for logo
 ### Guardian
@@ -21,6 +24,10 @@ We would like to work towards a fully featured Android SDK that is geared only t
 
 ## Special Thanks
 We greatly appreciate all the guidance we recieved from Mei and others at the CalHacks booth. It was a pleasure learning about the company and building on top of their codebase. We would also like to cite Data 100 for utilities that helped with parsing datasets.
+
+## Happy Hacking!
+<img src="assets/happyhackers.jpg" width="400">
+<img src="assets/workinghard.jpg" width="400">
 
 # rideOS Android SDK
 ## Overview

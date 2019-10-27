@@ -15,9 +15,11 @@ Various changes in the SDK for visual updates to the app
 <img src="assets/guardianui.png" width="200">
 
 ### Assets
-Illustrator and image files for logo
-### Guardian
-iPython notebook, associated datasets/files that power the constraints
+Illustrator and image files for logo.
+
+### Python Scripts
+iPython notebook, associated datasets/files that power the constraints.
+[a link](python_scripts/crimedata.ipynb)
 
 ## Future Work
 We would like to work towards a fully featured Android SDK that is geared only towards walkers/groups instead of adapting from riders/drivers. Dynamically updating crime data would proactively make our service as safe as possible for users.  

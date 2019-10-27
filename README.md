@@ -1,3 +1,26 @@
+# Guardian | CalHacks 2019
+
+## Introduction
+For many Berkeley students, walking home late at night or at odd hours always carries a certain risk unique to other colleges. As a consequence of our urban campus environment, it is unsafe to travel alone. Our team worked with RideOS and their software to create a service to allow students to safely find their way home in groups.
+
+## RideOS WebApp and Android App
+The Android SDK provided by RideOS offers seperate rider and driver apps that interact with a controller managed on RideOS servers. This can be accessed through the WebApp, which offers extensive functionalities through the use of `curl` commands and a playground feature.
+
+## Guardian Tools
+One of the usefuls tools that RideOS offers is the use of a `constraint`. This allows the manager of the controller to mark regions that should be avoided in mapping a route to a destination. Our project will take real data from Berkeley's Police Department and process the location of crimes throuhgout the city. We then map each crime hotspot into a group of coordinates, sent to the handler to create regions to avoid. We also provided cosmetic updates to the rider and driver app that interact with the WebApp.
+
+## Additions
+Various changes in the SDK for visual updates to the app
+### assets
+Illustrator and image files for logo
+### guardian
+iPython notebook, associated datasets/files that powers the constraints
+
+## Future Work
+We would like to work towards a fully featured android SDK that is geared only towards walkers/groups instead of adapting from riders/drivers. Dynamically updating crime data would proactively make our service as safe as possible for users.  
+
+## Special Thanks
+We greatly appreciate all the guidance we recieved from Mei and others at the CalHacks booth. It was a pleasure learning about the company and building on top of their codebase. We would also like to cite Data 100 for utilities that would help with parsing datasets.
 
 # rideOS Android SDK
 ## Overview

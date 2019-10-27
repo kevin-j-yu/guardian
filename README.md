@@ -4,23 +4,23 @@
 For many Berkeley students, walking home late at night or at odd hours always carries a certain risk unique to other colleges. As a consequence of our urban campus environment, it is unsafe to travel alone. Our team worked with RideOS and their software to create a service to allow students to safely find their way home in groups.
 
 ## RideOS WebApp and Android App
-The Android SDK provided by RideOS offers seperate rider and driver apps that interact with a controller managed on RideOS servers. This can be accessed through the WebApp, which offers extensive functionalities through the use of `curl` commands and a playground feature.
+The Android SDK provided by RideOS offers separate rider and driver apps that interact with a controller managed on RideOS servers. This can be accessed through the WebApp, which offers extensive functionality through the use of `curl` commands and a playground feature.
 
 ## Guardian Tools
-One of the usefuls tools that RideOS offers is the use of a `constraint`. This allows the manager of the controller to mark regions that should be avoided in mapping a route to a destination. Our project will take real data from Berkeley's Police Department and process the location of crimes throuhgout the city. We then map each crime hotspot into a group of coordinates, sent to the handler to create regions to avoid. We also provided cosmetic updates to the rider and driver app that interact with the WebApp.
+One of the useful tools that RideOS offers is the use of a `constraint`. This allows the manager of the controller to mark regions that should be avoided in mapping a route to a destination. Our project takes real data from Berkeley's Police Department and processes the locations of crimes throughout the city. We then map each crime hotspot to a group of coordinates sent to the handler to create regions to avoid. We also added cosmetic updates to the rider and driver apps that interact with the WebApp.
 
 ## Additions
 Various changes in the SDK for visual updates to the app
-### assets
+### Assets
 Illustrator and image files for logo
-### guardian
-iPython notebook, associated datasets/files that powers the constraints
+### Guardian
+iPython notebook, associated datasets/files that power the constraints
 
 ## Future Work
-We would like to work towards a fully featured android SDK that is geared only towards walkers/groups instead of adapting from riders/drivers. Dynamically updating crime data would proactively make our service as safe as possible for users.  
+We would like to work towards a fully featured Android SDK that is geared only towards walkers/groups instead of adapting from riders/drivers. Dynamically updating crime data would proactively make our service as safe as possible for users.  
 
 ## Special Thanks
-We greatly appreciate all the guidance we recieved from Mei and others at the CalHacks booth. It was a pleasure learning about the company and building on top of their codebase. We would also like to cite Data 100 for utilities that would help with parsing datasets.
+We greatly appreciate all the guidance we recieved from Mei and others at the CalHacks booth. It was a pleasure learning about the company and building on top of their codebase. We would also like to cite Data 100 for utilities that helped with parsing datasets.
 
 # rideOS Android SDK
 ## Overview

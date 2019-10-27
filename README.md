@@ -19,7 +19,7 @@ Illustrator and image files for logo.
 
 ### Python Scripts
 iPython notebook, associated datasets/files that power the constraints.
-Check it out [here](python_scripts/crimedata.ipynb)
+Check it out [here].(python_scripts/crimedata.ipynb)
 
 ## Future Work
 We would like to work towards a fully featured Android SDK that is geared only towards walkers/groups instead of adapting from riders/drivers. Dynamically updating crime data would proactively make our service as safe as possible for users.  

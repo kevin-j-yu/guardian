@@ -17,9 +17,9 @@
         <!-- Add your GMS API key here -->
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value=""/>
+                android:value="@string/google_api_key"/>
         <!-- Add your default fleet ID here -->
-        <meta-data android:name="default_fleet_id" android:value=""/>
+        <meta-data android:name="default_fleet_id" android:value="0"/>
         <!-- Set to true to show developer options in the side panel -->
         <meta-data android:name="enable_developer_options" android:value="false"/>
 
@@ -43,7 +43,7 @@
                 android:theme="@style/CustomLockTheme"/>
 
         <activity android:name="ai.rideos.android.rider_app.MainFragmentActivity"
-                  android:theme="@style/RideOS.MainTheme"
+                  android:theme="@style/GuardianTheme"
                   android:screenOrientation="portrait"
         >
         </activity>

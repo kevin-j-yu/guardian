@@ -17,6 +17,7 @@
 
 -->
 <resources>
+    <color name="guardian_blue">#6D9DEA</color>
     <color name="rideos_blue">#1172DD</color>
     <color name="rideos_dark_blue">#0B498E</color>
     <color name="rideos_light_blue">#42C3F5</color>

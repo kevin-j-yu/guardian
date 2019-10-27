@@ -16,6 +16,10 @@
 
 -->
 <resources>
+    <style name="GuardianTheme" parent="RideOS.MainTheme">
+        <item name="rideos.primary_color">#6d9dea</item>
+        <item name="rideos.primary_color_light">#6d9dea</item>
+    </style>
     <style name="CustomLockTheme" parent="Lock.Theme">
         <item name="Auth0.HeaderLogo">@mipmap/ic_launcher_foreground</item>
         <item name="Auth0.HeaderTitle">@string/final_app_name</item>

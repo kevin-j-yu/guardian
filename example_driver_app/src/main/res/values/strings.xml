@@ -16,10 +16,10 @@
 
 -->
 <resources>
-    <string name="final_app_name">Example Rider App</string>
+    <string name="final_app_name">Guardian</string>
 
     <!-- Add your Auth0 client ID here -->
-    <string name="com_auth0_client_id"></string>
+    <string name="com_auth0_client_id">@string/auth0_client_id</string>
     <!-- Add your Auth0 database connection here -->
-    <string name="com_auth0_connections"></string>
+    <string name="com_auth0_connections">@string/auth0_connections</string>
 </resources>

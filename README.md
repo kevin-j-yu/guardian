@@ -12,7 +12,10 @@ One of the useful tools that RideOS offers is the use of a `constraint`. This al
 ## Additions
 Various changes in the SDK for visual updates to the app
 
-<img src="assets/guardianui.png" width="200">
+<p float="left">
+  <img src="assets/guardianui.png" width="200">
+  <img src="demo/home_page.jpg" width="200">
+</p>
 
 ### Assets
 Illustrator and image files for logo.
